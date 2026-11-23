@@ -46,7 +46,21 @@ namespace SpaceOdyssey.Blockout
             public bool hideWhenLowered;
             public Vector3 normal;
             public bool shared;
+            public GameObject root;
+            public string partName;
+            public Vector3 position;
         }
+
+        /// <summary>방 사이(양쪽에 칸이 있는) 벽 조각의 정보. 변 편집기가 이 정보로 변 데이터를 만든다.</summary>
+        public struct WallPiece
+        {
+            public GameObject go;
+            public string partName;
+            public Vector3 position;
+            public Vector3 normal;   // 이 조각이 속한 칸에서 바깥(이웃 쪽)을 향하는 방향
+        }
+
+        public bool LidClosed => _lidClosed;
 
         readonly List<Wall> _walls = new List<Wall>();
         Renderer[] _exteriorRenderers;
@@ -108,29 +122,64 @@ namespace SpaceOdyssey.Blockout
                     var cell = new Vector2Int(Mathf.FloorToInt(cellPos.x), Mathf.FloorToInt(cellPos.z));
                     var neighbour = cell + new Vector2Int(Mathf.RoundToInt(n.x), Mathf.RoundToInt(n.z));
 
-                    var w = new Wall { main = r, normal = n, shared = cells.Contains(neighbour) };
-                    if (t.name == "Wall" || t.name == "WinSill")
+                    var w = new Wall
                     {
-                        const float lowH = 0.3f;
-                        var twin = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                        twin.name = "LowTwin";
-                        Destroy(twin.GetComponent<Collider>());
-                        twin.transform.SetParent(t, false);
-                        twin.transform.localScale = new Vector3(1f, lowH / s.y, 1f);
-                        twin.transform.localPosition = new Vector3(0f, (lowH * 0.5f - p.y) / s.y, 0f);
-                        var tr = twin.GetComponent<Renderer>();
-                        tr.sharedMaterial = r.sharedMaterial;
-                        tr.enabled = false;
-                        w.low = tr;
-                    }
-                    else
-                    {
-                        w.hideWhenLowered = true; // 문 상인방, 창 윗부분
-                    }
+                        main = r, normal = n, shared = cells.Contains(neighbour),
+                        root = t.gameObject, partName = t.name, position = p
+                    };
+                    if (t.name == "Wall" || t.name == "WinSill") w.low = MakeLowTwin(t, r);
+                    else w.hideWhenLowered = true; // 문 상인방, 창 윗부분
                     _walls.Add(w);
                 }
             }
         }
+
+        // 뚜껑을 열었을 때 보일 낮은 벽(높이 0.3m). 원래 조각은 충돌체로 그대로 남는다.
+        Renderer MakeLowTwin(Transform t, Renderer r)
+        {
+            const float lowH = 0.3f;
+            var twin = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            twin.name = "LowTwin";
+            Destroy(twin.GetComponent<Collider>());
+            twin.transform.SetParent(t, false);
+            twin.transform.localScale = new Vector3(1f, lowH / t.localScale.y, 1f);
+            twin.transform.localPosition = new Vector3(0f, (lowH * 0.5f - t.position.y) / t.localScale.y, 0f);
+            var tr = twin.GetComponent<Renderer>();
+            tr.sharedMaterial = r.sharedMaterial;
+            tr.enabled = false;
+            return tr;
+        }
+
+        /// <summary>방 사이 벽 조각을 목록에서 빼서 돌려준다(오브젝트는 지우지 않는다). 변 편집기가 처음에 한 번 쓴다.</summary>
+        public List<WallPiece> ExtractSharedWalls()
+        {
+            var list = new List<WallPiece>();
+            for (int i = _walls.Count - 1; i >= 0; i--)
+            {
+                var w = _walls[i];
+                if (!w.shared) continue;
+                list.Add(new WallPiece { go = w.root, partName = w.partName, position = w.position, normal = w.normal });
+                _walls.RemoveAt(i);
+            }
+            return list;
+        }
+
+        /// <summary>새로 놓은 벽 조각을 등록한다. 뚜껑을 열면 낮아지고(벽) 또는 숨는다(문 상인방).</summary>
+        public void RegisterWall(GameObject go, bool hideWhenLowered)
+        {
+            var r = go.GetComponent<Renderer>();
+            var w = new Wall { main = r, shared = true, root = go, partName = go.name, position = go.transform.position, hideWhenLowered = hideWhenLowered };
+            if (!hideWhenLowered) w.low = MakeLowTwin(go.transform, r);
+            _walls.Add(w);
+            ApplyWalls();
+        }
+
+        public void UnregisterWall(GameObject go)
+        {
+            _walls.RemoveAll(w => w.root == go);
+        }
+
+        public void RefreshWalls() => ApplyWalls();
 
         // 뚜껑 닫기/열기. 애니메이션 없이 즉시 바뀐다.
         // 열면 외피와 지붕은 보이지 않지만 그림자는 계속 드리우고, 방 사이 벽과 카메라 쪽 벽은 낮아진다.
