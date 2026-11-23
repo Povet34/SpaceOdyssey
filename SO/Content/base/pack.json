@@ -1,0 +1,8 @@
+{
+  "id": "base",
+  "name": "기본 묶음",
+  "version": "0.1",
+  "requires": [],
+  "disable": [],
+  "note": "게임에 기본으로 들어가는 사건 묶음이다. 형식은 Docs/QuestSystemDesign.md를 본다."
+}

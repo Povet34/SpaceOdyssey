@@ -1,0 +1,32 @@
+{
+  "directors": [
+    {
+      "id": "기본",
+      "name": "차분한 항해",
+      "note": "긴장이 천천히 오르고, 큰일 뒤에는 쉬어 간다.",
+      "budgetBase": 3,
+      "budgetPerLog10Year": 0.5,
+      "budgetMax": 9,
+      "maxActiveThreads": 4,
+      "maxNewPerWake": 2,
+      "maxFollowupsPerWake": 3,
+      "quietWakesAfterDisaster": 1,
+      "sameTargetPenalty": 0.3,
+      "guaranteeSignEveryWakes": 2
+    },
+    {
+      "id": "거친",
+      "name": "거친 항해",
+      "note": "쉬어 가는 일이 없고 한꺼번에 몰려온다.",
+      "budgetBase": 5,
+      "budgetPerLog10Year": 0.8,
+      "budgetMax": 14,
+      "maxActiveThreads": 6,
+      "maxNewPerWake": 3,
+      "maxFollowupsPerWake": 5,
+      "quietWakesAfterDisaster": 0,
+      "sameTargetPenalty": 0.6,
+      "guaranteeSignEveryWakes": 1
+    }
+  ]
+}

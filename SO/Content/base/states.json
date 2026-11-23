@@ -1,0 +1,69 @@
+{
+  "states": [
+    { "id": "시간.년", "name": "흐른 시간(년)", "type": "number", "min": 0, "default": 0, "owner": "game", "desc": "출발한 뒤 흐른 해." },
+    { "id": "시간.기상횟수", "name": "깨어난 횟수", "type": "int", "min": 0, "max": 100000, "default": 0, "owner": "game", "desc": "동면에서 깬 횟수." },
+    {
+      "id": "시대.성간",
+      "name": "성간 시대가 시작되는 해",
+      "type": "number",
+      "default": 3000,
+      "owner": "game",
+      "roll": { "base": 3000, "spread": 0.3 },
+      "desc": "판을 시작할 때 한 번 굴린다. 3000년에서 앞뒤 30%."
+    },
+    {
+      "id": "시대.거대공학",
+      "name": "거대 공학 시대가 시작되는 해",
+      "type": "number",
+      "default": 200000000,
+      "owner": "game",
+      "roll": { "base": 200000000, "spread": 0.3 },
+      "desc": "2억 년에서 앞뒤 30%."
+    },
+    {
+      "id": "시대.초월",
+      "name": "초월 시대가 시작되는 해",
+      "type": "number",
+      "default": 500000000,
+      "owner": "game",
+      "roll": { "base": 500000000, "spread": 0.25 },
+      "desc": "5억 년에서 앞뒤 25%."
+    },
+    {
+      "id": "시대.끝무렵",
+      "name": "끝 무렵이 시작되는 해",
+      "type": "number",
+      "default": 100000000000000,
+      "owner": "game",
+      "roll": { "base": 100000000000000, "spread": 0.3 },
+      "desc": "100조 년에서 앞뒤 30%."
+    },
+    { "id": "나.무드", "name": "무드", "type": "int", "min": 0, "max": 100, "default": 60, "owner": "game", "desc": "그날그날의 기분." },
+    { "id": "나.무드바닥", "name": "무드의 바닥", "type": "int", "min": -20, "max": 20, "default": 0, "owner": "game", "desc": "무드가 떨어질 수 있는 깊이. 말 상대와 추억이 받쳐 준다." },
+    { "id": "나.영감", "name": "영감", "type": "int", "min": -10, "max": 10, "default": 0, "owner": "game", "desc": "깨달음이 떠오를 여지." },
+    { "id": "나.생일챙김", "name": "챙긴 생일 수", "type": "int", "min": 0, "max": 999, "default": 0, "keep": true, "desc": "끝까지 챙긴 사람에게만 열리는 사건을 위해 남겨 둔다." },
+    { "id": "배.전력", "name": "전력 여유", "type": "int", "min": 0, "max": 100, "default": 50, "owner": "game", "desc": "남는 전력." },
+    { "id": "배.선체", "name": "선체 상태", "type": "int", "min": 0, "max": 100, "default": 80, "owner": "game", "desc": "배 전체의 건강." },
+    { "id": "자원.부품", "name": "부품", "type": "int", "min": 0, "max": 9999, "default": 10, "owner": "game", "desc": "수리와 제작에 쓰는 부품." },
+    { "id": "자원.식량", "name": "식량", "type": "int", "min": 0, "max": 9999, "default": 10, "owner": "game", "desc": "제대로 된 먹을 것." },
+    { "id": "일손.드론수", "name": "드론 수", "type": "int", "min": 0, "max": 999, "default": 4, "owner": "game", "desc": "움직이는 드론의 수." },
+    { "id": "일손.채취효율", "name": "채취 효율", "type": "int", "min": -10, "max": 10, "default": 0, "owner": "game", "desc": "드론이 캐 오는 양의 보정." },
+    { "id": "일손.드론마음", "name": "드론의 마음", "type": "int", "min": 0, "max": 5, "default": 0, "desc": "드론이 시키지 않은 일을 하는 정도. 드론 줄기들이 함께 올리고 내린다." },
+    { "id": "함선AI.단계", "name": "함선 AI 줄기 단계", "type": "int", "min": 0, "max": 10, "default": 0, "desc": "스카이림식 단계 번호. 0은 시작 전, 10은 끝." },
+    { "id": "함선AI.자율성", "name": "함선 AI 자율성", "type": "int", "min": 0, "max": 10, "default": 0, "desc": "AI가 스스로 정하는 정도. 방치할수록 오른다." },
+    { "id": "함선AI.친밀", "name": "함선 AI와의 친밀", "type": "int", "min": 0, "max": 10, "default": 0, "desc": "말 상대로서의 가까움. 여러 줄기가 올린다." },
+    { "id": "함선AI.생각마침", "name": "AI가 생각을 마쳤다", "type": "flag", "default": false, "desc": "침묵을 깨우지 않고 기다렸는가." },
+    { "id": "함선AI.결말", "name": "함선 AI 줄기의 결말", "type": "enum", "values": ["없음", "도구", "내배", "승객", "동료"], "default": "없음", "keep": true, "desc": "뒤 시기 줄기가 읽을 값." },
+    { "id": "창의금.단계", "name": "창의 금 단계", "type": "enum", "values": ["시작전", "가지침", "끝"], "default": "시작전" },
+    { "id": "배관소리.단계", "name": "배관 소리 단계", "type": "enum", "values": ["시작전", "기록함", "잦아듦", "끝"], "default": "시작전" },
+    { "id": "따뜻한벽.단계", "name": "따뜻한 벽 단계", "type": "enum", "values": ["시작전", "번짐", "정체", "옮김", "끝"], "default": "시작전" },
+    { "id": "따뜻한벽.크기", "name": "벽 속 그것의 크기", "type": "int", "min": 0, "max": 5, "default": 0, "desc": "방치할 때마다 1씩 큰다. 클수록 전력을 많이 먹고, 길들이면 많이 낸다." },
+    { "id": "따뜻한벽.결말", "name": "따뜻한 벽의 결말", "type": "enum", "values": ["없음", "떼어냄", "길들임", "식음"], "default": "없음", "keep": true },
+    { "id": "드론선물.단계", "name": "드론의 선물 단계", "type": "enum", "values": ["시작전", "쌓임", "진열", "유물대기", "끝"], "default": "시작전" },
+    { "id": "드론선물.결말", "name": "드론의 선물 결말", "type": "enum", "values": ["없음", "고침", "받아줌"], "default": "없음" },
+    { "id": "드론장례.단계", "name": "드론의 장례 단계", "type": "enum", "values": ["시작전", "세워둠", "끝"], "default": "시작전" },
+    { "id": "드론장례.결말", "name": "드론의 장례 결말", "type": "enum", "values": ["없음", "치움", "자리내줌"], "default": "없음" },
+    { "id": "짓는것.단계", "name": "짓고 있는 것 단계", "type": "enum", "values": ["시작전", "조립", "완성", "끝"], "default": "시작전" },
+    { "id": "짓는것.결말", "name": "짓고 있는 것 결말", "type": "enum", "values": ["없음", "막음", "받아들임", "해체"], "default": "없음", "keep": true }
+  ]
+}

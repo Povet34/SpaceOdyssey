@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>퀘스트 지도</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#10141b;--panel:#171d27;--panel2:#1e2633;--line:#2b3545;--text:#dfe6ee;--dim:#8b98a9;--accent:#4fd0c8;
+  --worse:#ef6b6b;--fade:#9aa3ad;--better:#5fd38a;--mixed:#e8b84a;--err:#ff5d5d;--warn:#f2c14e}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 "Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;display:grid;
+  grid-template:48px 1fr/270px 1fr 400px;grid-template-areas:"top top top" "left map right";overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#06211f;border-color:var(--accent);font-weight:600}
+button.danger:hover{border-color:var(--err);color:var(--err)}
+input,select,textarea{background:#0d1118;border:1px solid var(--line);border-radius:6px;padding:5px 8px;width:100%}
+textarea{resize:vertical;min-height:54px;font-family:Consolas,"D2Coding",monospace;font-size:13px}
+input:focus,select:focus,textarea:focus{outline:1px solid var(--accent)}
+header{grid-area:top;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:16px;margin:0 6px 0 0;white-space:nowrap}
+header .count{color:var(--dim);white-space:nowrap}
+header .count b.e{color:var(--err)} header .count b.w{color:var(--warn)} header .count b.ok{color:var(--better)}
+#search{width:220px}
+.sp{flex:1}
+#left{grid-area:left;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#right{grid-area:right;background:var(--panel);border-left:1px solid var(--line);overflow:auto;padding:14px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;border:0;border-radius:0;background:none;padding:9px 0;color:var(--dim);border-bottom:2px solid transparent}
+.tabs button.on{color:var(--text);border-bottom-color:var(--accent)}
+#leftbody{overflow:auto;padding:8px;flex:1}
+.row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer}
+.row:hover,.row.on{background:var(--panel2)}
+.row .sw{width:12px;height:12px;border-radius:3px;flex:none}
+.row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .n{color:var(--dim);font-size:12px}
+.row .ed{opacity:0;padding:0 6px;font-size:12px}.row:hover .ed{opacity:1}
+.prob{padding:7px 8px;border-radius:6px;cursor:pointer;border-left:3px solid var(--warn);margin-bottom:6px;background:var(--panel2);font-size:13px}
+.prob.error{border-left-color:var(--err)}
+.prob b{display:block;font-size:12px;color:var(--dim);font-weight:500}
+#mapwrap{grid-area:map;position:relative;overflow:hidden;background:radial-gradient(circle at 30% 20%,#151c28,#0c1016)}
+svg{width:100%;height:100%;display:block;cursor:grab;user-select:none}
+svg.drag{cursor:grabbing}
+.node{cursor:pointer}
+.node rect.box{fill:#1a212d;stroke-width:1.2}
+.node:hover rect.box{fill:#222b3a}
+.node.sel rect.box{stroke-width:3;fill:#263143}
+.node text{fill:var(--text);pointer-events:none}
+.node text.sub{fill:var(--dim);font-size:11px}
+.node text.t{font-size:14px;font-weight:600}
+.hub rect.box{fill:#222a1c;stroke:#a9c76a;stroke-dasharray:none;rx:15}
+.hub.float rect.box{fill:#262033;stroke:#b79cf0}
+.hub text{font-size:12px;fill:#dfe9c8}.hub.float text{fill:#e2d6fb}
+.edge{fill:none;stroke-width:1.5;opacity:.55}
+.edge.need{stroke-dasharray:2 4;opacity:.4}
+.edge.ignore{stroke-dasharray:7 5}
+.edge.floaty{opacity:.22;stroke-width:1.1}
+.dim .node:not(.hot){opacity:.18}
+.dim .edge:not(.hot){opacity:.04}
+.dim .band:not(.hot){opacity:.25}
+.edge.hot{opacity:1;stroke-width:2.6}
+.band rect{fill:#fff;opacity:.025}
+.band text{font-size:15px;font-weight:700}
+.band text.s{font-size:11px;font-weight:400;fill:var(--dim)}
+#legend{position:absolute;left:12px;bottom:12px;background:#171d27e6;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--dim);display:grid;grid-template-columns:auto auto;gap:3px 14px}
+#legend i{display:inline-block;width:26px;border-top:2px solid;vertical-align:middle;margin-right:6px}
+#hint{position:absolute;right:12px;bottom:12px;color:var(--dim);font-size:12px}
+h2{font-size:18px;margin:0 0 2px}
+h3{font-size:13px;color:var(--dim);font-weight:600;margin:16px 0 6px;letter-spacing:.02em}
+.id{color:var(--dim);font-family:Consolas,monospace;font-size:12px}
+.chip{display:inline-block;padding:1px 8px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-size:12px;margin:0 4px 4px 0}
+code,.code{font-family:Consolas,"D2Coding",monospace;font-size:12.5px;background:#0d1118;border:1px solid var(--line);border-radius:4px;padding:1px 6px;display:inline-block;margin:0 4px 4px 0}
+.card{background:var(--panel2);border:1px solid var(--line);border-left:4px solid #5a6a80;border-radius:6px;padding:9px 11px;margin-bottom:8px}
+.card .hd{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.card p{margin:5px 0;color:#c6d0db}
+.card .lbl{color:var(--dim);font-size:12px;margin-right:6px}
+.badge{font-size:11px;padding:0 7px;border-radius:9px;border:1px solid currentColor;font-weight:500}
+.go{color:var(--accent);cursor:pointer;text-decoration:underline;font-size:13px;margin-right:8px}
+.kv{display:grid;grid-template-columns:86px 1fr;gap:3px 8px;font-size:13px}
+.kv span:nth-child(odd){color:var(--dim)}
+.sign{margin:3px 0}.sign b{color:var(--dim);font-weight:500;margin-right:6px}
+.btns{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
+form label{display:block;font-size:12px;color:var(--dim);margin:9px 0 3px}
+form .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+form .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+form .chk{display:flex;gap:12px;flex-wrap:wrap}
+form .chk label{display:flex;gap:5px;align-items:center;margin:0;color:var(--text);font-size:13px}
+form .chk input{width:auto}
+.help{font-size:12px;color:var(--dim);background:#0d1118;border:1px dashed var(--line);border-radius:6px;padding:8px 10px;margin:10px 0}
+.help code{margin:0 2px 2px 0}
+.msg{padding:8px 10px;border-radius:6px;margin:8px 0;background:#3a1d22;border:1px solid var(--err)}
+.empty{color:var(--dim);padding:30px 6px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>퀘스트 지도</h1>
+  <input id="search" placeholder="사건 찾기 (제목, 글, id)">
+  <span class="count" id="count"></span>
+  <span class="sp"></span>
+  <button id="bNew" class="primary">＋ 새 사건</button>
+  <button id="bFit">전체 보기</button>
+  <button id="bReload">다시 읽기</button>
+</header>
+<div id="left">
+  <div class="tabs"><button data-tab="threads" class="on">줄기</button><button data-tab="problems">문제</button><button data-tab="states">상태값</button></div>
+  <div id="leftbody"></div>
+</div>
+<div id="mapwrap">
+  <svg id="svg"><defs id="defs"></defs><g id="view"><g id="bands"></g><g id="edges"></g><g id="nodes"></g></g></svg>
+  <div id="legend">
+    <span><i style="border-color:#8b98a9"></i>대응하면 이어짐</span><span><i style="border-color:var(--worse);border-top-style:dashed"></i>방치: 나빠짐</span>
+    <span><i style="border-color:#a9c76a"></i>상태값을 거쳐 이어짐</span><span><i style="border-color:var(--better);border-top-style:dashed"></i>방치: 좋아짐</span>
+    <span><i style="border-color:#8b98a9;border-top-style:dotted"></i>대응의 요구에 영향</span><span><i style="border-color:var(--fade);border-top-style:dashed"></i>방치: 잦아듦</span>
+    <span>▶ 새로 뽑히는 사건 &nbsp; ↻ 되풀이</span><span><i style="border-color:var(--mixed);border-top-style:dashed"></i>방치: 섞임</span>
+  </div>
+  <div id="hint">끌어서 이동 · 휠로 확대 · 사건을 누르면 내용</div>
+</div>
+<div id="right"></div>
+
+<script>
+'use strict';
+const TONE={worse:['나빠짐','#ef6b6b'],fade:['잦아듦','#9aa3ad'],better:['좋아짐','#5fd38a'],mixed:['섞임','#e8b84a']};
+const DRAW={opener:'새로 뽑힘',followup:'이어짐'};
+const PHASE={wake:'깨어 보니',awake:'깨어 있는 동안',sleep:'자는 동안(깨운다)'};
+const TYPES={flag:'켜짐/꺼짐',int:'정수',number:'큰 수',enum:'이름 붙은 값'};
+const PANELS=['','정상','문제 있음, 고치는 법 모름','문제 있음, 자원 없음','문제 있음, 고칠 수 있음','완파'];
+const TARGETS=['배','나','일손','앎'];
+const COLW=270,ROWH=86,EW=204,EH=62,GAP=30;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let D=null,N=new Map(),EV={},ST={},TH={},PR={},bands=[],sel=null,focusThread=null,tab='threads',view={x:60,y:140,k:1},editing=false,lastArea=null;
+
+async function api(path,body){
+  const r=await fetch(path,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});
+  const j=await r.json(); if(!r.ok) throw new Error(j.error||'실패'); return j;
+}
+async function reload(keepView){
+  setData(await api('/api/data')); if(!keepView) fit();
+}
+function setData(d){
+  D=d;EV={};ST={};TH={};PR={};
+  d.events.forEach(e=>EV[e.id]=e); d.states.forEach(s=>ST[s.id]=s); d.threads.forEach(t=>TH[t.id]=t);
+  d.problems.forEach(p=>{const k=p.kind+':'+p.target;(PR[k]=PR[k]||[]).push(p)});
+  layout(); draw(); drawLeft(); drawCount();
+  if(sel&&!(sel.type==='event'?EV[sel.id]:ST[sel.id])) sel=null;
+  if(!editing) drawRight(); mark();
+}
+function drawCount(){
+  const e=D.problems.filter(p=>p.level==='error').length,w=D.problems.length-e;
+  $('#count').innerHTML=`사건 ${D.events.length} · 줄기 ${D.threads.length} · 상태값 ${D.states.length} · `+
+    (e||w?`<b class="e">오류 ${e}</b> · <b class="w">주의 ${w}</b>`:'<b class="ok">검사 통과</b>');
+}
+
+/* ---------- 자리 잡기 ---------- */
+function layout(){
+  N=new Map();
+  D.events.forEach(e=>N.set(e.id,{id:e.id,type:'event',thread:e.thread,ev:e,w:EW,h:EH}));
+  D.graph.hubs.forEach(s=>{const st=ST[s]||{};N.set('state:'+s,{id:'state:'+s,type:'hub',state:s,
+    float:st.type==='int'||st.type==='number',w:Math.max(110,s.length*13+34),h:30})});
+  const succ=new Map([...N.keys()].map(k=>[k,[]]));
+  D.graph.edges.forEach(e=>{const a=N.get(e.from),b=N.get(e.to);if(!a||!b)return;
+    e._float=!!(a.float||b.float); if(e.order&&!e._float) succ.get(a.id).push(b.id);
+    if(b.type==='hub'&&!b.float&&!b.thread) b.thread=a.thread;});
+  const state=new Map(),order=[],kept=new Map();
+  const dfs=u=>{state.set(u,1);for(const v of succ.get(u)){if(state.get(v)===1)continue;(kept.get(u)||kept.set(u,[]).get(u)).push(v);if(!state.get(v))dfs(v)}state.set(u,2);order.push(u)};
+  for(const k of N.keys()) if(!state.get(k)) dfs(k);
+  const rank=new Map([...N.keys()].map(k=>[k,0]));
+  for(const u of order.reverse()) for(const v of (kept.get(u)||[])) rank.set(v,Math.max(rank.get(v),rank.get(u)+1));
+  bands=[];let y=0;
+  const tids=D.threads.map(t=>t.id);
+  D.events.forEach(e=>{if(!tids.includes(e.thread))tids.push(e.thread)});
+  for(const tid of tids){
+    const mem=[...N.values()].filter(n=>!n.float&&n.thread===tid); if(!mem.length)continue;
+    const cols=new Map();let maxn=1,minx=1e9,maxx=0;
+    mem.forEach(n=>{const r=rank.get(n.id),c=cols.get(r)||cols.set(r,[]).get(r);n.x=r*COLW+(n.type==='hub'?(EW-n.w)/2:0);n.y=y+c.length*ROWH+(ROWH-n.h)/2;c.push(n);
+      maxn=Math.max(maxn,c.length);minx=Math.min(minx,r*COLW);maxx=Math.max(maxx,r*COLW+EW)});
+    bands.push({id:tid,y,h:maxn*ROWH,minx,maxx,n:mem.filter(n=>n.type==='event').length});
+    y+=maxn*ROWH+GAP;
+  }
+  const fl=[...N.values()].filter(n=>n.float);
+  fl.forEach(n=>{const xs=[];D.graph.edges.forEach(e=>{const o=e.from===n.id?N.get(e.to):e.to===n.id?N.get(e.from):null;if(o&&!o.float)xs.push(o.x+o.w/2)});
+    n.cx=xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:0});
+  fl.sort((a,b)=>a.cx-b.cx);const rows=[];
+  fl.forEach(n=>{let r=rows.findIndex(right=>n.cx-n.w/2>right+24);if(r<0){r=rows.length;rows.push(-1e9)}n.x=n.cx-n.w/2;n.y=-64-r*46;rows[r]=n.x+n.w});
+}
+function edgePath(e){
+  const a=N.get(e.from),b=N.get(e.to);
+  if(e._float){
+    const up=a.float; const p=up?[a.x+a.w/2,a.y+a.h]:[a.x+a.w/2+(e.via==='ignore'?10:-10),a.y], q=up?[b.x+b.w/2,b.y]:[b.x+b.w/2,b.y+b.h];
+    const dy=Math.max(40,Math.abs(q[1]-p[1])/2)*(q[1]>p[1]?1:-1);
+    return `M${p[0]},${p[1]} C${p[0]},${p[1]+dy} ${q[0]},${q[1]-dy} ${q[0]},${q[1]}`;
+  }
+  const off=e.kind==='need'?14:e.via==='ignore'?8:e.via==='state'?0:-6;
+  const x1=a.x+a.w,y1=a.y+a.h/2+off,x2=b.x,y2=b.y+b.h/2+off,dx=Math.max(46,Math.abs(x2-x1)/2);
+  return `M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`;
+}
+function edgeColor(e){
+  if(e.via==='ignore') return (TONE[e.tone]||TONE.mixed)[1];
+  if(e.via==='state') return e._float?'#b79cf0':'#a9c76a';
+  return '#8b98a9';
+}
+const cut=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s};
+function draw(){
+  const colors=['#8b98a9','#a9c76a','#b79cf0',...Object.values(TONE).map(t=>t[1])];
+  $('#defs').innerHTML=colors.map(c=>`<marker id="m${c.slice(1)}" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="${c}"/></marker>`).join('');
+  $('#bands').innerHTML=bands.map(b=>{const t=TH[b.id]||{name:b.id+' (없는 줄기)',color:'#ff5d5d'};
+    return `<g class="band" data-thread="${esc(b.id)}"><rect x="${b.minx-24}" y="${b.y+2}" width="${b.maxx-b.minx+48}" height="${b.h-4}" rx="14"/>
+    <text x="${b.minx-40}" y="${b.y+b.h/2}" text-anchor="end" fill="${t.color}">${esc(t.name)}</text>
+    <text class="s" x="${b.minx-40}" y="${b.y+b.h/2+17}" text-anchor="end">${b.n}장${t.source?' · 원본 '+esc(t.source):''}</text></g>`}).join('');
+  $('#edges').innerHTML=D.graph.edges.map((e,i)=>{if(!N.get(e.from)||!N.get(e.to))return'';const c=edgeColor(e);
+    const tip=[e.labels.join(', '),(e.states||[]).join(', ')].filter(Boolean).join(' → ');
+    return `<path class="edge ${e.via} ${e.kind==='need'?'need':''} ${e._float?'floaty':''}" data-i="${i}" d="${edgePath(e)}" stroke="${c}" marker-end="url(#m${c.slice(1)})"><title>${esc(tip)}</title></path>`}).join('');
+  $('#nodes').innerHTML=[...N.values()].map(n=>{
+    if(n.type==='hub'){const st=ST[n.state]||{};
+      return `<g class="node hub ${n.float?'float':''}" data-id="${esc(n.id)}" transform="translate(${n.x},${n.y})"><rect class="box" width="${n.w}" height="${n.h}" rx="15"/>
+      <text x="${n.w/2}" y="20" text-anchor="middle">${esc(n.state)}</text><title>${esc(st.name||'')}</title>${badge(PR['state:'+n.state],n.w)}</g>`}
+    const e=n.ev,t=TH[e.thread]||{color:'#ff5d5d'},tone=e.ignore&&TONE[e.ignore.tone];
+    return `<g class="node" data-id="${esc(n.id)}" transform="translate(${n.x},${n.y})">
+      <rect class="box" width="${n.w}" height="${n.h}" rx="8" stroke="${t.color}"/><rect width="6" height="${n.h}" rx="3" fill="${t.color}"/>
+      <text class="t" x="16" y="25">${e.draw==='opener'?'▶ ':''}${esc(cut(e.title,e.draw==='opener'?11:13))}</text>
+      <text class="sub" x="16" y="46">${esc(cut([e.beat,PHASE[e.phase]&&PHASE[e.phase].split('(')[0],e.repeat?'↻':''].filter(Boolean).join(' · '),24))}</text>
+      ${tone?`<circle cx="${n.w-14}" cy="${n.h-14}" r="5" fill="${tone[1]}"><title>방치하면: ${tone[0]}</title></circle>`:''}${badge(PR['event:'+e.id],n.w)}</g>`}).join('');
+  applyView();
+}
+function badge(ps,w){
+  if(!ps||!ps.length) return '';
+  const err=ps.some(p=>p.level==='error');
+  return `<g transform="translate(${w-4},2)"><circle r="10" fill="${err?'#ff5d5d':'#f2c14e'}"/><text y="4" text-anchor="middle" style="fill:#111;font-size:12px;font-weight:700">${ps.length}</text><title>${esc(ps.map(p=>p.msg).join('\n'))}</title></g>`;
+}
+function applyView(){ $('#view').setAttribute('transform',`translate(${view.x},${view.y}) scale(${view.k})`) }
+function bbox(nodes){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;nodes.forEach(n=>{x0=Math.min(x0,n.x);y0=Math.min(y0,n.y);x1=Math.max(x1,n.x+n.w);y1=Math.max(y1,n.y+n.h)});return{x0,y0,x1,y1}}
+function fit(nodes,maxK){
+  nodes=nodes||[...N.values()]; if(!nodes.length)return;
+  const b=bbox(nodes),r=$('#svg').getBoundingClientRect(),pl=Math.min(190,r.width*.25),p=Math.min(50,r.width*.06);
+  const k=Math.max(.08,Math.min((r.width-pl-p)/(b.x1-b.x0||1),(r.height-2*p)/(b.y1-b.y0||1),maxK||1.15));
+  view={k,x:pl+(r.width-pl-p-(b.x1-b.x0)*k)/2-b.x0*k,y:p+(r.height-2*p-(b.y1-b.y0)*k)/2-b.y0*k};applyView();
+}
+function mark(){
+  const svg=$('#svg'),hot=new Set(),q=$('#search').value.trim().toLowerCase();let hotEdges=null;
+  if(sel){const id=sel.type==='event'?sel.id:'state:'+sel.id;hot.add(id);hotEdges=new Set();
+    D.graph.edges.forEach((e,i)=>{if(e.from===id||e.to===id){hot.add(e.from);hot.add(e.to);hotEdges.add(i)}})}
+  else if(focusThread){N.forEach(n=>{if(n.thread===focusThread)hot.add(n.id)});hotEdges=new Set();
+    D.graph.edges.forEach((e,i)=>{if(hot.has(e.from)||hot.has(e.to))hotEdges.add(i)});D.graph.edges.forEach((e,i)=>{if(hotEdges.has(i)){hot.add(e.from);hot.add(e.to)}})}
+  else if(q){D.events.forEach(e=>{if(JSON.stringify(e).toLowerCase().includes(q))hot.add(e.id)})}
+  const dim=!!(sel||focusThread||q);svg.classList.toggle('dim',dim);
+  svg.querySelectorAll('.node').forEach(g=>{g.classList.toggle('hot',hot.has(g.dataset.id));g.classList.toggle('sel',!!sel&&g.dataset.id===(sel.type==='event'?sel.id:'state:'+sel.id))});
+  svg.querySelectorAll('.edge').forEach(p=>p.classList.toggle('hot',!!hotEdges&&hotEdges.has(+p.dataset.i)));
+  svg.querySelectorAll('.band').forEach(b=>b.classList.toggle('hot',!focusThread||b.dataset.thread===focusThread));
+}
+function select(type,id,center){
+  if(editing&&!confirm('고치던 내용을 버릴까?'))return; editing=false;
+  sel=id?{type,id}:null;focusThread=null;drawRight();drawLeft();mark();
+  const n=id&&N.get(type==='event'?id:'state:'+id);
+  if(center&&n){const r=$('#svg').getBoundingClientRect();view.k=Math.max(view.k,.8);view.x=r.width/2-(n.x+n.w/2)*view.k;view.y=r.height/2-(n.y+n.h/2)*view.k;applyView()}
+}
+
+/* ---------- 왼쪽 ---------- */
+function drawLeft(){
+  document.querySelectorAll('.tabs button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===tab);
+    if(b.dataset.tab==='problems')b.textContent='문제'+(D.problems.length?` (${D.problems.length})`:'')});
+  const el=$('#leftbody');
+  if(tab==='threads'){
+    el.innerHTML=D.threads.map(t=>`<div class="row ${focusThread===t.id?'on':''}" data-thread="${esc(t.id)}"><span class="sw" style="background:${t.color}"></span>
+      <span class="nm" title="${esc(t.note||'')}">${esc(t.name||t.id)}</span><span class="n">${D.events.filter(e=>e.thread===t.id).length}장</span><button class="ed" data-edit-thread="${esc(t.id)}">고침</button></div>`).join('')
+      +`<div class="btns"><button data-edit-thread="">＋ 새 줄기</button>${focusThread?'<button data-thread="">전체 보기</button>':''}</div>`;
+  }else if(tab==='problems'){
+    const kinds={event:'사건',state:'상태값',thread:'줄기',file:'파일'};
+    el.innerHTML=D.problems.length?[...D.problems].sort((a,b)=>a.level.localeCompare(b.level)).map(p=>`<div class="prob ${p.level}" data-kind="${p.kind}" data-target="${esc(p.target)}">
+      <b>${p.level==='error'?'오류':'주의'} · ${kinds[p.kind]||p.kind} ${esc(p.target)}</b>${esc(p.msg)}</div>`).join(''):'<div class="empty">문제가 없다.<br>검사 통과.</div>';
+  }else{
+    el.innerHTML=`<div class="btns" style="margin-top:2px"><button data-edit-state="">＋ 새 상태값</button></div>`+
+      D.states.map(s=>`<div class="row ${sel&&sel.type==='state'&&sel.id===s.id?'on':''}" data-state="${esc(s.id)}"><span class="nm" title="${esc(s.name||'')}">${esc(s.id)}</span>
+      <span class="n">${s.owner==='game'?'게임':TYPES[s.type]||''}</span>${(PR['state:'+s.id]||[]).length?'<span style="color:var(--warn)">!</span>':''}</div>`).join('');
+  }
+}
+$('#left').addEventListener('click',ev=>{
+  const t=ev.target.closest('[data-tab]');if(t){tab=t.dataset.tab;drawLeft();return}
+  const et=ev.target.closest('[data-edit-thread]');if(et){ev.stopPropagation();editThread(et.dataset.editThread);return}
+  const es=ev.target.closest('[data-edit-state]');if(es){editState(es.dataset.editState);return}
+  const th=ev.target.closest('[data-thread]');if(th){if(editing&&!confirm('고치던 내용을 버릴까?'))return;editing=false;sel=null;focusThread=th.dataset.thread||null;drawLeft();drawRight();mark();
+    fit(focusThread?[...N.values()].filter(n=>n.thread===focusThread):null);return}
+  const st=ev.target.closest('[data-state]');if(st){select('state',st.dataset.state,true);return}
+  const p=ev.target.closest('.prob');if(p){const k=p.dataset.kind,id=p.dataset.target;
+    if(k==='event'&&EV[id])select('event',id,true);else if(k==='state'&&ST[id])select('state',id,true);else if(k==='thread'&&TH[id])editThread(id)}
+});
+
+/* ---------- 오른쪽: 보기 ---------- */
+function codes(list){return (list||[]).map(x=>`<span class="code">${esc(x)}</span>`).join('')||'<span class="id">없음</span>'}
+function nexts(eid,via,idx){
+  const ids=[...new Set(D.graph.raw.filter(r=>r.from===eid&&r.via===via&&r.idx===idx&&r.kind==='when').map(r=>r.to))];
+  return ids.length?`<p><span class="lbl">이어짐</span>${ids.map(i=>`<span class="go" data-go="${esc(i)}">${esc(EV[i]?EV[i].title:i)}</span>`).join('')}</p>`:'';
+}
+function outcomeCard(e,o,via,idx){
+  const tone=via==='ignore'?TONE[o.tone]||['?','#888']:null;
+  return `<div class="card" style="border-left-color:${tone?tone[1]:'#5a6a80'}"><div class="hd">${via==='ignore'?'방치하면':esc(o.label)}
+    ${tone?`<span class="badge" style="color:${tone[1]}">${tone[0]}</span>`:''}${o.ends?'<span class="badge" style="color:var(--dim)">줄기 끝</span>':''}</div>
+    ${o.needs&&o.needs.length?`<p><span class="lbl">요구</span>${codes(o.needs)}</p>`:''}${o.cost?`<p><span class="lbl">드는 것</span>${esc(o.cost)}</p>`:''}
+    <p>${esc(o.text||'')}</p><p><span class="lbl">결과</span>${codes(o.effects)}</p>
+    ${(o.rolls||[]).map(r=>`<p><span class="lbl">확률 ${esc(r.weight)}</span>${esc(r.text||'')} ${codes(r.effects)}</p>`).join('')}${nexts(e.id,via,idx)}</div>`;
+}
+function problemsHtml(key){return (PR[key]||[]).map(p=>`<div class="prob ${p.level}"><b>${p.level==='error'?'오류':'주의'}</b>${esc(p.msg)}</div>`).join('')}
+function drawRight(){
+  const el=$('#right');
+  if(!sel){
+    const t=focusThread&&TH[focusThread];
+    el.innerHTML=t?`<h2 style="color:${t.color}">${esc(t.name)}</h2><div class="id">${esc(t.id)} · ${esc(t._file)}</div><p>${esc(t.note||'')}</p>${t.source?`<p class="id">원본 예시: ${esc(t.source)}</p>`:''}
+      <div class="btns"><button data-edit-thread="${esc(t.id)}">줄기 고치기</button><button data-new-in="${esc(t.id)}">＋ 이 줄기에 사건</button></div>`
+      :`<div class="empty">사건을 누르면 내용이 여기에 뜬다.<br><br>네모는 사건 한 장, 둥근 알약은 여러 줄기가 함께 건드리는 상태값이다.<br>왼쪽에서 줄기를 누르면 그 줄기만 밝게 보인다.</div>`;
+    return;
+  }
+  if(sel.type==='state'){
+    const s=ST[sel.id],w=new Set(),r=new Set();
+    D.events.forEach(e=>{const j=JSON.stringify([e.when,(e.responses||[]).map(x=>x.needs)]),k=JSON.stringify([(e.responses||[]).map(x=>[x.effects,x.rolls]),e.ignore&&[e.ignore.effects,e.ignore.rolls]]);
+      const re=new RegExp('(^|[^\\w.])'+s.id.replace('.','\\.')+'($|[^\\w.])');
+      if(re.test(j.replace(/"/g,' ')))r.add(e.id);
+      if(new RegExp('"'+s.id.replace('.','\\.')+'\\s*(\\+=|-=|=)').test(k))w.add(e.id);else if(re.test(k.replace(/"/g,' ')))r.add(e.id)});
+    const links=set=>[...set].map(i=>`<span class="go" data-go="${esc(i)}">${esc(EV[i].title)}</span>`).join('')||'<span class="id">없음</span>';
+    el.innerHTML=`<h2>${esc(s.name||s.id)}</h2><div class="id">${esc(s.id)} · ${esc(s._file)}</div>${problemsHtml('state:'+s.id)}
+      <h3>값</h3><div class="kv"><span>종류</span><span>${TYPES[s.type]||esc(s.type)}</span>
+      ${s.type==='enum'?`<span>가능한 값</span><span>${codes(s.values)}</span>`:''}${'min' in s||'max' in s?`<span>범위</span><span>${esc(s.min??'')} ~ ${esc(s.max??'')}</span>`:''}
+      <span>기본값</span><span>${esc(s.default)}</span><span>주인</span><span>${s.owner==='game'?'게임이 값을 댄다':'퀘스트'}</span>
+      ${s.roll?`<span>흔들림</span><span>${esc(s.roll.base)} 앞뒤 ${Math.round(s.roll.spread*100)}%</span>`:''}${s.keep?'<span>남김</span><span>나중 줄기를 위해 남겨 둔다</span>':''}</div>
+      <p>${esc(s.desc||'')}</p><h3>바꾸는 사건</h3>${links(w)}<h3>읽는 사건</h3>${links(r)}
+      <div class="btns"><button data-edit-state="${esc(s.id)}">고치기</button></div>`;
+    return;
+  }
+  const e=EV[sel.id],t=TH[e.thread]||{name:e.thread,color:'#ff5d5d'},sg=e.signs||{};
+  el.innerHTML=`<h2>${esc(e.title)}</h2><div class="id">${esc(e.id)} · ${esc(e._file)}</div>
+    <div style="margin:8px 0"><span class="chip" style="border-color:${t.color};color:${t.color};cursor:pointer" data-thread-chip="${esc(e.thread)}">${esc(t.name)}</span>
+    ${e.beat?`<span class="chip">${esc(e.beat)}</span>`:''}<span class="chip">${DRAW[e.draw]||esc(e.draw)}</span><span class="chip">${PHASE[e.phase]||esc(e.phase)}</span>${e.repeat?'<span class="chip">↻ 되풀이</span>':''}</div>
+    ${problemsHtml('event:'+e.id)}
+    <div class="kv">${e.place?`<span>곳</span><span>${esc(e.place)}</span>`:''}${e.targets?`<span>노리는 곳</span><span>${esc(e.targets.join(', '))}</span>`:''}
+    ${e.draw==='opener'?`<span>가중치</span><span>${esc(e.weight)}</span>`:''}${e.load!=null?`<span>부담</span><span>${esc(e.load)}</span>`:''}
+    ${e.after?`<span>간격</span><span>${e.after.wakes?'앞 사건 뒤 '+e.after.wakes+'번 깬 다음 ':''}${e.after.years?e.after.years+'년 뒤':''}</span>`:''}
+    ${e.repeat?`<span>되풀이</span><span>${esc(e.repeat.cooldownWakes??1)}번 깰 때마다 다시</span>`:''}</div>
+    <h3>조건 (모두 맞아야 한다)</h3>${codes(e.when)}
+    <h3>징후</h3>${sg.see?`<div class="sign"><b>보임</b>${esc(sg.see)}</div>`:''}${sg.hear?`<div class="sign"><b>들림</b>${esc(sg.hear)}</div>`:''}${sg.panel?`<div class="sign"><b>패널</b>${esc(sg.panel)}</div>`:''}
+    <h3>대응</h3>${(e.responses||[]).map((o,i)=>outcomeCard(e,o,'response',i)).join('')||'<span class="id">할 수 있는 일이 없다</span>'}
+    <h3>방치</h3>${e.ignore?outcomeCard(e,e.ignore,'ignore',0):'<span class="id">없음</span>'}
+    ${e.note?`<h3>메모</h3><p>${esc(e.note)}</p>`:''}
+    <div class="btns"><button class="primary" data-edit-event="${esc(e.id)}">고치기</button><button data-follow="${esc(e.id)}">＋ 뒤에 잇기</button><button class="danger" data-del-event="${esc(e.id)}">지우기</button></div>`;
+}
+$('#right').addEventListener('click',ev=>{
+  const d=ev.target.dataset;
+  if(d.go)select('event',d.go,true);
+  else if(d.threadChip){sel=null;focusThread=d.threadChip;drawLeft();drawRight();mark()}
+  else if('editEvent' in d)editEvent(EV[d.editEvent]);
+  else if('follow' in d){const p=EV[d.follow];editEvent({id:p.thread+'.',thread:p.thread,title:'',beat:'',draw:'followup',phase:'wake',place:p.place||'',targets:p.targets||[],when:[],signs:{},responses:[{label:'',text:'',effects:[]}],ignore:{tone:'worse',text:'',effects:[]}},true)}
+  else if('newIn' in d)newEvent(d.newIn);
+  else if('editThread' in d)editThread(d.editThread);
+  else if('editState' in d)editState(d.editState);
+  else if('delEvent' in d){if(confirm(`'${EV[d.delEvent].title}' 사건을 지울까? 파일에서 지워진다.`))save('/api/event',{id:d.delEvent,delete:true},null)}
+});
+
+/* ---------- 오른쪽: 고치기 ---------- */
+const lines=s=>String(s||'').split('\n').map(x=>x.trim()).filter(Boolean);
+const fld=(label,name,val,extra='')=>`<div><label>${label}</label><input name="${name}" value="${esc(val??'')}" ${extra}></div>`;
+const area=(label,name,val,rows=2)=>`<div><label>${label}</label><textarea name="${name}" rows="${rows}">${esc(Array.isArray(val)?val.join('\n'):val??'')}</textarea></div>`;
+const pick=(label,name,val,opts)=>`<div><label>${label}</label><select name="${name}">${opts.map(([v,t])=>`<option value="${esc(v)}" ${v===(val??'')?'selected':''}>${esc(t)}</option>`).join('')}</select></div>`;
+function respHtml(o,i){return `<div class="card" data-resp="${i}"><div class="hd">대응 <span class="sp" style="flex:1"></span><button type="button" class="danger" data-rm-resp>빼기</button></div>
+  ${fld('이름 (플레이어가 하는 일)','r_label',o.label)}${area('요구 (한 줄에 하나, 없으면 비움)','r_needs',o.needs,1)}${fld('드는 것 (시간, 자원을 글로)','r_cost',o.cost)}
+  ${area('무슨 일이 일어나나','r_text',o.text)}${area('결과 (한 줄에 하나)','r_effects',o.effects,3)}
+  <div class="chk" style="margin-top:6px"><label><input type="checkbox" name="r_ends" ${o.ends?'checked':''}>이 대응으로 줄기가 끝난다</label></div></div>`}
+function editEvent(e,isNew){
+  editing=true;const orig=isNew?null:e.id,ig=e.ignore||{},sg=e.signs||{};
+  $('#right').innerHTML=`<form id="f"><h2>${isNew?'새 사건':'사건 고치기'}</h2><div id="fmsg"></div>
+    <div class="two">${fld('제목','title',e.title)}${fld('id (줄기.이름, 띄어쓰기 없이)','id',e.id)}</div>
+    <div class="two">${pick('줄기','thread',e.thread,D.threads.map(t=>[t.id,t.name||t.id]))}${fld('박자','beat',e.beat,'list="beats"')}<datalist id="beats"><option>징후<option>악화<option>정체<option>결판<option>단발</datalist></div>
+    <div class="two">${pick('나오는 법','draw',e.draw,[['opener','새로 뽑힘 (연출자가 고른다)'],['followup','이어짐 (조건이 맞으면 온다)']])}${pick('언제 드러나나','phase',e.phase,Object.entries(PHASE))}</div>
+    <div class="two">${fld('곳 (배의 어디)','place',e.place)}<div><label>노리는 곳</label><div class="chk">${TARGETS.map(t=>`<label><input type="checkbox" name="target" value="${t}" ${(e.targets||[]).includes(t)?'checked':''}>${t}</label>`).join('')}</div></div></div>
+    <div class="three">${fld('가중치 (새로 뽑힘만)','weight',e.weight,'type="number" step="any"')}${fld('부담 0~5','load',e.load,'type="number"')}${fld('앞 사건 뒤 몇 번 깨고','after_wakes',e.after&&e.after.wakes,'type="number"')}</div>
+    <div class="chk" style="margin-top:8px"><label><input type="checkbox" name="repeat" ${e.repeat?'checked':''}>조건이 맞는 동안 되풀이</label>
+      <label>몇 번 깰 때마다 <input name="cooldown" type="number" style="width:64px" value="${esc(e.repeat?e.repeat.cooldownWakes??1:1)}"></label></div>
+    ${area('조건 (한 줄에 하나, 모두 맞아야 한다)','when',e.when,3)}
+    <div class="help">쓰는 법: <code>따뜻한벽.단계 == 정체</code><code>함선AI.친밀 >= 4</code><code>시간.년 >= 5억</code><code>함선AI.생각마침</code><code>!함선AI.생각마침</code><code>테크(금속프린터)</code><code>꼬리표(기계화) >= 2</code><code>A == 1 또는 B == 2</code><br>
+      결과: <code>나.무드 += 3</code><code>따뜻한벽.단계 = 끝</code><code>배.전력 -= 따뜻한벽.크기</code><code>유물얻음(이름)</code><code>테크얻음(이름)</code><code>일지(글)</code><br>
+      <select id="ins" style="margin-top:6px"><option value="">상태값 이름 넣기 (마지막으로 누른 칸에)</option>${D.states.map(s=>`<option value="${esc(s.id)}">${esc(s.id)} — ${esc(s.name||'')}${s.type==='enum'?' ['+esc(s.values.join(', '))+']':''}</option>`).join('')}</select></div>
+    <h3>징후 (보이는 것이나 들리는 것 하나는 꼭)</h3>${area('보이는 것','see',sg.see)}${area('들리는 것','hear',sg.hear)}${pick('패널 표시','panel',sg.panel,PANELS.map(p=>[p,p||'(표시 없음)']))}
+    <h3>대응</h3><div id="resps">${(e.responses||[]).map(respHtml).join('')}</div><button type="button" id="addResp">＋ 대응 더하기</button>
+    <h3>방치 (놓치고 자면)</h3><div class="card" style="border-left-color:var(--mixed)">${pick('방치하면','i_tone',ig.tone,Object.entries(TONE).map(([k,v])=>[k,v[0]]))}
+      ${area('무슨 일이 일어나나','i_text',ig.text)}${area('결과 (한 줄에 하나)','i_effects',ig.effects,3)}
+      <div class="chk" style="margin-top:6px"><label><input type="checkbox" name="i_ends" ${ig.ends?'checked':''}>방치하면 줄기가 끝난다</label></div></div>
+    ${area('메모','note',e.note,1)}
+    <div class="btns"><button class="primary">저장</button><button type="button" id="cancel">그만두기</button></div></form>`;
+  const f=$('#f');
+  f.addEventListener('focusin',x=>{if(x.target.tagName==='TEXTAREA')lastArea=x.target});
+  $('#ins').onchange=x=>{const v=x.target.value;x.target.value='';if(!v||!lastArea)return;const a=lastArea,p=a.selectionStart;a.value=a.value.slice(0,p)+v+a.value.slice(a.selectionEnd);a.focus();a.selectionStart=a.selectionEnd=p+v.length};
+  $('#addResp').onclick=()=>$('#resps').insertAdjacentHTML('beforeend',respHtml({},Date.now()));
+  $('#resps').addEventListener('click',x=>{if('rmResp' in x.target.dataset)x.target.closest('.card').remove()});
+  $('#cancel').onclick=()=>{editing=false;drawRight()};
+  f.onsubmit=x=>{x.preventDefault();const v=n=>f.elements[n].value.trim(),num=n=>v(n)===''?undefined:+v(n);
+    const o=JSON.parse(JSON.stringify(isNew?{}:e));Object.keys(o).forEach(k=>k[0]==='_'&&delete o[k]);
+    const put=(obj,k,val)=>{if(val===undefined||val===''||val===false||(Array.isArray(val)&&!val.length&&k!=='effects'&&k!=='when'))delete obj[k];else obj[k]=val};
+    put(o,'id',v('id'));put(o,'thread',v('thread'));put(o,'title',v('title'));put(o,'beat',v('beat'));put(o,'draw',v('draw'));put(o,'phase',v('phase'));put(o,'place',v('place'));
+    put(o,'targets',[...f.querySelectorAll('[name=target]:checked')].map(c=>c.value));o.when=lines(v('when'));
+    put(o,'weight',o.draw==='opener'?num('weight'):undefined);put(o,'load',num('load'));
+    put(o,'after',num('after_wakes')?{...(o.after||{}),wakes:num('after_wakes')}:(o.after&&o.after.years?{years:o.after.years}:undefined));
+    put(o,'repeat',f.elements.repeat.checked?{cooldownWakes:num('cooldown')||1}:undefined);
+    const sg2={};put(sg2,'see',v('see'));put(sg2,'hear',v('hear'));put(sg2,'panel',v('panel'));o.signs=sg2;
+    const old=(e.responses||[]);
+    o.responses=[...f.querySelectorAll('[data-resp]')].map(c=>{const g=n=>c.querySelector(`[name=${n}]`),r={...(old[+c.dataset.resp]||{})};
+      put(r,'label',g('r_label').value.trim());put(r,'needs',lines(g('r_needs').value));put(r,'cost',g('r_cost').value.trim());put(r,'text',g('r_text').value.trim());
+      r.effects=lines(g('r_effects').value);put(r,'ends',g('r_ends').checked);return r});
+    const i2={...(e.ignore||{})};put(i2,'tone',v('i_tone'));put(i2,'text',v('i_text'));i2.effects=lines(v('i_effects'));put(i2,'ends',f.elements.i_ends.checked);o.ignore=i2;
+    put(o,'note',v('note'));
+    save('/api/event',{original_id:orig,item:o},{type:'event',id:o.id});
+  };
+}
+function newEvent(thread){
+  if(!D.threads.length){alert('먼저 줄기를 하나 만든다.');return editThread('')}
+  const t=thread||focusThread||(sel&&sel.type==='event'&&EV[sel.id].thread)||D.threads[0].id;
+  editEvent({id:t+'.',thread:t,title:'',beat:'징후',draw:'opener',phase:'wake',weight:8,load:1,when:[],signs:{},responses:[{label:'',text:'',effects:[]}],ignore:{tone:'worse',text:'',effects:[]}},true);
+}
+function simpleForm(title,html,onsubmit,delBtn){
+  editing=true;
+  $('#right').innerHTML=`<form id="f"><h2>${title}</h2><div id="fmsg"></div>${html}<div class="btns"><button class="primary">저장</button><button type="button" id="cancel">그만두기</button>${delBtn?'<button type="button" class="danger" id="del">지우기</button>':''}</div></form>`;
+  $('#cancel').onclick=()=>{editing=false;drawRight()};
+  $('#f').onsubmit=x=>{x.preventDefault();onsubmit($('#f'))};
+}
+function editThread(id){
+  const t=TH[id]||{id:'',name:'',color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'),note:''};
+  simpleForm(id?'줄기 고치기':'새 줄기',`<div class="two">${fld('이름','name',t.name)}${fld('id (띄어쓰기 없이)','id',t.id)}</div>
+    <div class="two">${fld('색','color',t.color,'type="color" style="height:34px;padding:2px"')}${fld('원본 예시 번호','source',t.source)}</div>${area('메모','note',t.note)}`,
+    f=>{const o={...t};['id','name','color','source','note'].forEach(k=>{const v=f.elements[k].value.trim();if(v)o[k]=v;else delete o[k]});
+      Object.keys(o).forEach(k=>k[0]==='_'&&delete o[k]);save('/api/thread',{original_id:id||null,item:o},null,()=>{focusThread=o.id})},!!id);
+  if(id)$('#del').onclick=()=>{if(D.events.some(e=>e.thread===id))return alert('이 줄기에 사건이 남아 있다. 사건을 먼저 지우거나 옮긴다.');if(confirm('줄기를 지울까?'))save('/api/thread',{id,delete:true},null,()=>{focusThread=null})};
+}
+function editState(id){
+  const s=ST[id]||{id:'',name:'',type:'enum',values:['시작전','끝'],default:'시작전'};
+  simpleForm(id?'상태값 고치기':'새 상태값',`<div class="two">${fld('이름 (설명용)','name',s.name)}${fld('id (영역.이름)','id',s.id)}</div>
+    ${pick('종류','type',s.type,Object.entries(TYPES))}
+    ${fld('가능한 값 (이름 붙은 값일 때, 쉼표로)','values',(s.values||[]).join(', '))}
+    <div class="three">${fld('최소','min',s.min,'type="number" step="any"')}${fld('최대','max',s.max,'type="number" step="any"')}${fld('기본값','default',s.default)}</div>
+    <div class="chk" style="margin-top:8px"><label><input type="checkbox" name="game" ${s.owner==='game'?'checked':''}>게임이 값을 댄다 (무드, 자원, 시간 같은 것)</label>
+    <label><input type="checkbox" name="keep" ${s.keep?'checked':''}>아직 읽는 사건이 없어도 남겨 둔다</label></div>${area('설명','desc',s.desc)}
+    <div class="help">줄기의 진행은 <code>줄기.단계</code>, 끝난 모양은 <code>줄기.결말</code>로 이름 붙인다. 여러 줄기가 함께 건드리는 값은 <code>나.</code> <code>배.</code> <code>일손.</code> <code>앎.</code> 같은 영역 이름을 앞에 붙인다.</div>`,
+    f=>{const v=n=>f.elements[n].value.trim(),o={...s};Object.keys(o).forEach(k=>k[0]==='_'&&delete o[k]);
+      o.id=v('id');o.name=v('name');o.type=v('type');delete o.values;delete o.min;delete o.max;
+      if(o.type==='enum'){o.values=v('values').split(',').map(x=>x.trim()).filter(Boolean);o.default=v('default')||o.values[0]}
+      else if(o.type==='flag')o.default=['true','참','1'].includes(v('default'));
+      else{if(v('min')!=='')o.min=+v('min');if(v('max')!=='')o.max=+v('max');o.default=+v('default')||0}
+      if(f.elements.game.checked)o.owner='game';else delete o.owner;if(f.elements.keep.checked)o.keep=true;else delete o.keep;
+      if(v('desc'))o.desc=v('desc');else delete o.desc;if(!o.name)delete o.name;
+      save('/api/state',{original_id:id||null,item:o},{type:'state',id:o.id})},!!id);
+  if(id)$('#del').onclick=()=>{if(confirm('상태값을 지울까? 이 값을 쓰는 사건은 오류가 난다.'))save('/api/state',{id,delete:true},null)};
+}
+async function save(path,body,nextSel,after){
+  try{const d=await api(path,body);editing=false;sel=nextSel;if(after)after();setData(d)}
+  catch(err){const m=$('#fmsg');if(m){m.innerHTML=`<div class="msg">${esc(err.message)}</div>`;m.scrollIntoView()}else alert(err.message)}
+}
+
+/* ---------- 지도 조작 ---------- */
+const svg=$('#svg');let drag=null,moved=false;
+svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y};moved=false;svg.setPointerCapture(e.pointerId)});
+svg.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>4){moved=true;svg.classList.add('drag')}if(moved){view.x=drag.vx+dx;view.y=drag.vy+dy;applyView()}});
+svg.addEventListener('pointerup',e=>{svg.classList.remove('drag');const was=drag;drag=null;if(!was||moved)return;
+  const el=document.elementFromPoint(e.clientX,e.clientY),g=el&&el.closest('.node'),b=el&&el.closest('.band');
+  if(g){const id=g.dataset.id;id.startsWith('state:')?select('state',id.slice(6)):select('event',id)}
+  else if(b&&el.tagName==='text'){sel=null;focusThread=b.dataset.thread;drawLeft();drawRight();mark()}
+  else if(sel||focusThread){if(editing)return;sel=null;focusThread=null;drawRight();drawLeft();mark()}});
+svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,k=Math.min(3,Math.max(.08,view.k*Math.exp(-e.deltaY*.0015)));
+  view.x=mx-(mx-view.x)*k/view.k;view.y=my-(my-view.y)*k/view.k;view.k=k;applyView()},{passive:false});
+$('#bFit').onclick=()=>{focusThread=null;drawLeft();mark();fit()};
+$('#bReload').onclick=()=>reload(true);
+$('#bNew').onclick=()=>newEvent();
+$('#search').oninput=()=>{if(!editing){sel=null;focusThread=null;drawRight();drawLeft()}mark()};
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!editing&&(sel||focusThread)){sel=null;focusThread=null;drawRight();drawLeft();mark()}});
+reload().catch(e=>{$('#right').innerHTML=`<div class="msg">자료를 읽지 못했다: ${esc(e.message)}</div>`});
+</script>
+</body>
+</html>
