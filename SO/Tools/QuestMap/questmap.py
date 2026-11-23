@@ -443,7 +443,7 @@ def validate(c):
         if draw not in DRAWS:
             P('error', 'draw', 'event', eid, "draw는 opener(새로 뽑힘)나 followup(이어짐)이어야 한다")
         if ev.get('phase') not in PHASES:
-            P('error', 'phase', 'event', eid, "phase는 wake(깨어 보니), awake(깨어 있는 동안), sleep(자는 동안) 가운데 하나여야 한다")
+            P('error', 'phase', 'event', eid, "phase는 wake(동면에서 깨면 이미 벌어져 있다), awake(깨어서 지내는 사이에 생긴다), sleep(동면 중에 생겨서 깨운다) 가운데 하나여야 한다")
         when = parse_list(eid, ev.get('when'), parse_clause, '조건')
         for clause in when:
             for a in clause:

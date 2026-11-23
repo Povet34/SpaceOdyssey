@@ -124,7 +124,8 @@ form .chk input{width:auto}
 'use strict';
 const TONE={worse:['나빠짐','#ef6b6b'],fade:['잦아듦','#9aa3ad'],better:['좋아짐','#5fd38a'],mixed:['섞임','#e8b84a']};
 const DRAW={opener:'새로 뽑힘',followup:'이어짐'};
-const PHASE={wake:'깨어 보니',awake:'깨어 있는 동안',sleep:'자는 동안(깨운다)'};
+const PHASE={wake:'동면에서 깨면 이미 벌어져 있다',awake:'깨어서 지내는 며칠 사이에 생긴다',sleep:'동면 중에 생겨서 나를 깨운다'};
+const PHASE_S={wake:'기상 때 발견',awake:'지내는 중에',sleep:'동면 중 깨움'};
 const TYPES={flag:'켜짐/꺼짐',int:'정수',number:'큰 수',enum:'이름 붙은 값'};
 const PANELS=['','정상','문제 있음, 고치는 법 모름','문제 있음, 자원 없음','문제 있음, 고칠 수 있음','완파'];
 const TARGETS=['배','나','일손','앎'];
@@ -221,7 +222,7 @@ function draw(){
     return `<g class="node" data-id="${esc(n.id)}" transform="translate(${n.x},${n.y})">
       <rect class="box" width="${n.w}" height="${n.h}" rx="8" stroke="${t.color}"/><rect width="6" height="${n.h}" rx="3" fill="${t.color}"/>
       <text class="t" x="16" y="25">${e.draw==='opener'?'▶ ':''}${esc(cut(e.title,e.draw==='opener'?11:13))}</text>
-      <text class="sub" x="16" y="46">${esc(cut([e.beat,PHASE[e.phase]&&PHASE[e.phase].split('(')[0],e.repeat?'↻':''].filter(Boolean).join(' · '),24))}</text>
+      <text class="sub" x="16" y="46">${esc(cut([e.beat,PHASE_S[e.phase],e.repeat?'↻':''].filter(Boolean).join(' · '),24))}</text>
       ${tone?`<circle cx="${n.w-14}" cy="${n.h-14}" r="5" fill="${tone[1]}"><title>방치하면: ${tone[0]}</title></circle>`:''}${badge(PR['event:'+e.id],n.w)}</g>`}).join('');
   applyView();
 }
@@ -369,7 +370,7 @@ function editEvent(e,isNew){
   $('#right').innerHTML=`<form id="f"><h2>${isNew?'새 사건':'사건 고치기'}</h2><div id="fmsg"></div>
     <div class="two">${fld('제목','title',e.title)}${fld('id (줄기.이름, 띄어쓰기 없이)','id',e.id)}</div>
     <div class="two">${pick('줄기','thread',e.thread,D.threads.map(t=>[t.id,t.name||t.id]))}${fld('박자','beat',e.beat,'list="beats"')}<datalist id="beats"><option>징후<option>악화<option>정체<option>결판<option>단발</datalist></div>
-    <div class="two">${pick('나오는 법','draw',e.draw,[['opener','새로 뽑힘 (연출자가 고른다)'],['followup','이어짐 (조건이 맞으면 온다)']])}${pick('언제 드러나나','phase',e.phase,Object.entries(PHASE))}</div>
+    <div class="two">${pick('나오는 법','draw',e.draw,[['opener','새로 뽑힘 (연출자가 고른다)'],['followup','이어짐 (조건이 맞으면 온다)']])}${pick('언제 플레이어 앞에 나타나나','phase',e.phase,Object.entries(PHASE))}</div>
     <div class="two">${fld('곳 (배의 어디)','place',e.place)}<div><label>노리는 곳</label><div class="chk">${TARGETS.map(t=>`<label><input type="checkbox" name="target" value="${t}" ${(e.targets||[]).includes(t)?'checked':''}>${t}</label>`).join('')}</div></div></div>
     <div class="three">${fld('가중치 (새로 뽑힘만)','weight',e.weight,'type="number" step="any"')}${fld('부담 0~5','load',e.load,'type="number"')}${fld('앞 사건 뒤 몇 번 깨고','after_wakes',e.after&&e.after.wakes,'type="number"')}</div>
     <div class="chk" style="margin-top:8px"><label><input type="checkbox" name="repeat" ${e.repeat?'checked':''}>조건이 맞는 동안 되풀이</label>
