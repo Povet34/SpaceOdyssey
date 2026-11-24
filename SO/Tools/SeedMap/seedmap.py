@@ -3,6 +3,7 @@
 
   python seedmap.py build [--open]   seedmap.html을 만든다 (브라우저로 연다)
   python seedmap.py check            검사와 엮임 보강 후보를 글로 낸다 (오류가 있으면 종료 코드 1)
+  python seedmap.py watch            원본이 바뀌면 seedmap.html을 자동으로 다시 만든다 (Ctrl+C로 끝낸다)
 
 읽는 곳: SO/Docs/QuestSeeds/0N_*.md (씨앗), SO/Docs/QuestSeeds/00_Means.md (수단 목록), SO/Docs/Quests/ (퀘스트라인)
 Python 3.8 이상. 다른 패키지는 필요 없다.
@@ -14,6 +15,8 @@ import os
 import pathlib
 import re
 import sys
+import time
+import traceback
 import webbrowser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -531,6 +534,46 @@ def cmd_build(open_it):
         webbrowser.open(pathlib.Path(dest).as_uri())
 
 
+def watch_stamp():
+    """지도가 읽는 원본 파일들의 수정 시각. 이 값이 바뀌면 다시 만든다."""
+    paths = [os.path.join(HERE, 'seedmap.py'), os.path.join(HERE, 'template.html')]
+    for d in (SEEDS, QUESTS):
+        if os.path.isdir(d):
+            paths += [os.path.join(d, f) for f in os.listdir(d) if f.endswith('.md')]
+    return {p: os.path.getmtime(p) for p in paths}
+
+
+def cmd_watch(interval=2.0, settle=3.0):
+    """원본이 바뀌면 지도를 다시 만든다. 에이전트가 여러 파일을 연달아 고치는 동안에는 기다렸다가
+    마지막 변경 뒤 settle초가 지나면 한 번만 만든다. seedmap.py 자신이 바뀌면 새 코드로 다시 시작한다."""
+    print('[감시 시작] 씨앗 문서와 템플릿이 바뀌면 seedmap.html을 다시 만든다. 끝내려면 Ctrl+C.')
+    cmd_build(False)
+    last = watch_stamp()
+    changed_at = None
+    while True:
+        time.sleep(interval)
+        cur = watch_stamp()
+        if cur != last:
+            if cur.get(os.path.join(HERE, 'seedmap.py')) != last.get(os.path.join(HERE, 'seedmap.py')):
+                print('[%s] seedmap.py가 바뀌어 새 코드로 다시 시작한다.' % time.strftime('%H:%M:%S'))
+                sys.stdout.flush()
+                os.execv(sys.executable, [sys.executable] + sys.argv)
+            last = cur
+            changed_at = time.time()
+            continue
+        if changed_at is not None and time.time() - changed_at >= settle:
+            changed_at = None
+            print('[%s] 원본이 바뀌어 다시 만든다.' % time.strftime('%H:%M:%S'))
+            try:
+                cmd_build(False)
+            except Exception:
+                # 파일을 편집하는 도중에 읽으면 파싱이 실패할 수 있다. 숨기지 않고 오류를 출력하고,
+                # 이전 seedmap.html은 그대로 둔 채 다음 변경을 기다린다.
+                traceback.print_exc()
+                print('[%s] 다시 만들지 못했다. 이전 지도를 유지하고 다음 변경을 기다린다.' % time.strftime('%H:%M:%S'))
+            sys.stdout.flush()
+
+
 def cmd_check(show_suggest, verbose=False):
     m = build_model()
     items = lint(m)
@@ -572,7 +615,14 @@ def main():
     c = sub.add_parser('check')
     c.add_argument('--suggest', action='store_true', help='엮임 보강 후보도 낸다')
     c.add_argument('--verbose', action='store_true', help='참고 항목을 모두 낸다')
+    sub.add_parser('watch', help='원본이 바뀌면 지도를 자동으로 다시 만든다')
     args = ap.parse_args()
+    if args.cmd == 'watch':
+        try:
+            cmd_watch()
+        except KeyboardInterrupt:
+            print('[감시 끝]')
+        return
     if args.cmd == 'check':
         sys.exit(cmd_check(args.suggest, args.verbose))
     cmd_build(getattr(args, 'open', False))
