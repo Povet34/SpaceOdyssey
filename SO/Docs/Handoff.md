@@ -28,7 +28,7 @@
 **퀘스트**
 - 새 형식(낱장 사건, JSON)으로 옮긴 예시 사건 29장, 줄기 8개가 `SO/Content/base/`에 있다.
 - 검사 도구와 지도 도구가 `SO/Tools/QuestMap/`에 있다. `퀘스트지도열기.bat`을 두 번 누르면 브라우저에 지도가 뜨고, `퀘스트검사.bat`은 검사만 돌린다. Python 3이 필요하다.
-- 씨앗은 1차 묶음 여덟 개에 269개가 있다. 풀 때 쓰는 테크와 물건을 모은 수단 목록도 `SO/Docs/QuestSeeds/00_Means.md`에 있다. 표본 리뷰의 판정이 "고쳐야 함"이라 고르기 전에 손봐야 한다.
+- 씨앗은 1차 묶음 여덟 개에 268개가 있다. 풀 때 쓰는 테크와 물건을 모은 수단 목록도 `SO/Docs/QuestSeeds/00_Means.md`에 있다. 두 번째 리뷰도 "다시 고쳐야 함"이라 고르기 전에 손봐야 한다.
 
 **우주선**
 - 블록아웃 씬이 `SO/Assets/Scenes/`에 있다 (`ShipBlockout`, `ShipBlockout_Large`).
@@ -50,7 +50,7 @@
 
 [QuestSeeds/README.md](QuestSeeds/README.md)의 "이어서 할 일"과 [QuestSystemDesign.md](QuestSystemDesign.md)를 본다. 큰 줄기는 이렇다.
 
-1. 모은 씨앗 여덟 묶음을 리뷰대로 손본다. 고칠 것은 [QuestSeeds/REVIEW_2026-11-24.md](QuestSeeds/REVIEW_2026-11-24.md)에 있다.
+1. 모은 씨앗 여덟 묶음을 한 번 고쳤다. 재리뷰에서 나온 남은 문제와 먼저 정할 것 여섯 가지가 [QuestSeeds/REVIEW_2026-11-24.md](QuestSeeds/REVIEW_2026-11-24.md)에 있다.
 2. 연출자(무엇을 언제 낼지 고르는 부분)는 설계만 있다. 구현하지 않았다.
 3. 게임이 `Content` 폴더의 파일을 읽는 코드가 없다.
 4. 지도 도구가 좁은 창에서 처음에 지도를 왼쪽 위에 아주 작게 그렸다. 보통 크기의 브라우저에서 같은지 확인하지 않았다.
