@@ -128,6 +128,7 @@ DATA.seeds.forEach(s=>{ nodes[s.id]={id:s.id,type:'seed',label:s.title,bundle:s.
 DATA.quests.forEach(q=>{ nodes[q.id]={id:q.id,type:'quest',label:q.title,d:q,x:0,y:0,has:false}; });
 DATA.means.forEach(m=>{ nodes[m.id]={id:m.id,type:'means',label:m.name,d:m,x:0,y:0,has:false}; });
 const edges = DATA.edges.filter(e=>nodes[e.s]&&nodes[e.t]);
+const meansBy = {}; DATA.means.forEach(m=>{ meansBy[m.name]=m; });
 const titleIdx = {}; DATA.seeds.forEach(s=>{(titleIdx[s.title]=titleIdx[s.title]||[]).push(s);});
 const allKinds = [...new Set(DATA.seeds.flatMap(s=>s.kinds))].sort();
 const lintBy = {}; DATA.lint.forEach(l=>{ if(l.id) (lintBy[l.id]=lintBy[l.id]||[]).push(l); });
@@ -354,8 +355,10 @@ function linkify(text, bundle){
 }
 function pathHtml(p){
   const chips=p.means.map(m=>'<span class="chip c" data-id="m:'+esc(m.name)+'">'+esc(m.name)+(m.state?' · '+esc(m.state):'')+'</span>').join('');
+  const help=p.means.map(m=>{ const d=meansBy[m.name]; const w=d&&d.cells&&d.cells['무엇인가'];
+    return w?'<div><b>'+esc(m.name)+'</b> — '+esc(String(w).replace(/\*\*/g,''))+'</div>':''; }).join('');
   let t=esc(p.text).replace(/ → /g,'<br><span class="res">→ </span>').replace(/(남는 것:)/g,'<b>$1</b>');
-  return '<div class="card"><b class="t">'+esc(p.name)+'</b><div>'+chips+'</div><div class="small" style="color:#cdd6e1">'+t+'</div></div>';
+  return '<div class="card"><b class="t">'+esc(p.name)+'</b><div>'+chips+'</div>'+(help?'<div class="small" style="margin:2px 0 6px;border-left:2px solid #34415a;padding-left:8px">'+help+'</div>':'')+'<div class="small" style="color:#cdd6e1">'+t+'</div></div>';
 }
 function renderDetail(){
   const R=$('#right'); const id=S.sel; R.scrollTop=0;
