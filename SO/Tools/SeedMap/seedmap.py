@@ -161,7 +161,8 @@ def parse_bundle_tables(path, bundle):
                     if len(r) <= idx or not r[idx]:
                         continue
                     cells = {h: (r[k] if k < len(r) else '') for k, h in enumerate(head)}
-                    found[r[idx]] = dict(cat='새 수단' if is_new else '물체', bundle=bundle, cells=cells, section=sec)
+                    if r[idx] not in found:  # 같은 이름이 뒤쪽 표(근거가 약한 항목 등)에 또 나와도 먼저 나온 행이 이긴다
+                        found[r[idx]] = dict(cat='새 수단' if is_new else '물체', bundle=bundle, cells=cells, section=sec)
             i = j
             continue
         i += 1
@@ -236,6 +237,12 @@ def build_model():
         extra_by_bundle[b] = found
         extra_means.update({k: v for k, v in found.items() if k not in extra_means})
     catalog = parse_means_catalog(os.path.join(SEEDS, '00_Means.md'))
+    pool = {}  # 00_TechPool.md의 후보. 씨앗이 쓰기 전에는 지도에 안 나오고 수단 탭에만 있다
+    pool_path = os.path.join(SEEDS, '00_TechPool.md')
+    if os.path.exists(pool_path):
+        for k, v in parse_bundle_tables(pool_path, 'TP').items():
+            if '비틀어 쓰기' in v['cells'] and k not in catalog:
+                pool[k] = dict(cat='풀 후보', cells=v['cells'])
     quests = parse_quests()
 
     for i, s in enumerate(seeds):
@@ -257,6 +264,8 @@ def build_model():
                 if n not in means:
                     if n in catalog:
                         means[n] = dict(name=n, cat=catalog[n]['cat'], cells=catalog[n]['cells'], known=True)
+                    elif n in pool:
+                        means[n] = dict(name=n, cat='풀 후보', cells=pool[n]['cells'], known=True)
                     elif n in extra_means:
                         em = extra_means[n]
                         means[n] = dict(name=n, cat=em['cat'], cells=em['cells'], known=True, bundle=em['bundle'])
@@ -264,6 +273,9 @@ def build_model():
                         means[n] = dict(name=n, cat='미정의', cells={}, known=False)
                         unknown[n] += 1
                 means[n]['big'] = n in BIG
+    for n, v in pool.items():
+        if n not in means:
+            means[n] = dict(name=n, cat='풀 후보', cells=v['cells'], known=True)
     # 수단 간선 (씨앗-수단당 하나)
     uses = collections.defaultdict(lambda: collections.defaultdict(list))
     for s in seeds:
@@ -354,7 +366,7 @@ def build_model():
         s['suggest'] = [dict(id=i, shared=sh[:3]) for _, i, sh in sc[:3]]
 
     return dict(seeds=seeds, means=means, quests=quests, ledges=ledges, medges=medges, unresolved=unresolved,
-                extra_means=extra_means, extra_by_bundle=extra_by_bundle, unknown=unknown, by_title=by_title)
+                extra_means=extra_means, extra_by_bundle=extra_by_bundle, unknown=unknown, by_title=by_title, pool=pool)
 
 
 def lint(m):
@@ -486,8 +498,9 @@ def cmd_build(open_it):
     with open(dest, 'w', encoding='utf-8', newline='\n') as f:
         f.write(out)
     counts = collections.Counter(i['level'] for i in items)
-    print('씨앗 %d, 수단 %d, 퀘스트라인 %d, 엮임 %d, 수단 연결 %d' % (
-        len(m['seeds']), len(m['means']), len(m['quests']),
+    unused = sum(1 for v in m['means'].values() if v['cat'] == '풀 후보' and not v['uses'])
+    print('씨앗 %d, 수단 %d (테크 풀 후보 %d개 중 아직 안 쓰인 것 %d), 퀘스트라인 %d, 엮임 %d, 수단 연결 %d' % (
+        len(m['seeds']), len(m['means']), len(m['pool']), unused, len(m['quests']),
         len(m['ledges']), len(m['medges'])))
     print('오류 %d, 주의 %d, 참고 %d  → %s' % (counts['error'], counts['warn'], counts['info'], dest))
     if open_it:
