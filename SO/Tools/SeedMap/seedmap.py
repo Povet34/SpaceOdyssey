@@ -243,6 +243,17 @@ def build_model():
         for k, v in parse_bundle_tables(pool_path, 'TP').items():
             if '비틀어 쓰기' in v['cells'] and k not in catalog:
                 pool[k] = dict(cat='풀 후보', cells=v['cells'])
+    weak = {}  # 00_TechPool.md '근거가 약하거나 지어 넣은 항목' 표: 이름 -> 뿌리 칸의 사정
+    if os.path.exists(pool_path):
+        in_weak = False
+        for ln in open(pool_path, encoding='utf-8').read().split('\n'):
+            if ln.startswith('## '):
+                in_weak = ln.startswith('## 근거가 약하거나')
+                continue
+            if in_weak and ln.startswith('|'):
+                cells = [x.strip() for x in ln.strip().strip('|').split('|')]
+                if len(cells) >= 3 and cells[0].isdigit():
+                    weak[cells[1]] = cells[2]
     quests = parse_quests()
 
     for i, s in enumerate(seeds):
@@ -276,6 +287,8 @@ def build_model():
     for n, v in pool.items():
         if n not in means:
             means[n] = dict(name=n, cat='풀 후보', cells=v['cells'], known=True)
+    for n in means:
+        means[n]['weak'] = weak.get(n, '')
     # 수단 간선 (씨앗-수단당 하나)
     uses = collections.defaultdict(lambda: collections.defaultdict(list))
     for s in seeds:
@@ -366,7 +379,7 @@ def build_model():
         s['suggest'] = [dict(id=i, shared=sh[:3]) for _, i, sh in sc[:3]]
 
     return dict(seeds=seeds, means=means, quests=quests, ledges=ledges, medges=medges, unresolved=unresolved,
-                extra_means=extra_means, extra_by_bundle=extra_by_bundle, unknown=unknown, by_title=by_title, pool=pool)
+                extra_means=extra_means, extra_by_bundle=extra_by_bundle, unknown=unknown, by_title=by_title, pool=pool, weak=weak)
 
 
 def lint(m):
@@ -480,11 +493,21 @@ def payload(m, items):
     means_out = []
     for n, v in sorted(m['means'].items()):
         means_out.append(dict(id='m:' + n, name=n, cat=v['cat'], big=v.get('big', False), known=v['known'],
-                              cells=v['cells'], uses=v['uses'], seeds=v['seeds'], bundle=v.get('bundle')))
+                              cells=v['cells'], uses=v['uses'], seeds=v['seeds'], bundle=v.get('bundle'), weak=v.get('weak', '')))
     quests_out = [dict(id='q' + q['num'], num=q['num'], title=q['title'], cond=q['cond'], steps=q['steps'], file=q['file'])
                   for q in m['quests']]
     return dict(seeds=seeds_out, means=means_out, quests=quests_out, edges=m['ledges'] + m['medges'],
                 lint=items, bundles=BUNDLES, eras=ERAS, big=BIG)
+
+
+def weak_report(m):
+    weak = m['weak']
+    missing = sorted(n for n in weak if n not in m['pool'])
+    used = sorted(n for n in weak if n in m['pool'] and m['means'].get(n, {}).get('uses'))
+    s = '근거 약한 풀 후보 %d개 중 씨앗에 쓰인 것 %d개' % (len(weak) - len(missing), len(used))
+    if missing:
+        s += ' (표에는 있는데 풀에 없는 이름: %s)' % ', '.join(missing)
+    return s
 
 
 def cmd_build(open_it):
@@ -503,6 +526,7 @@ def cmd_build(open_it):
         len(m['seeds']), len(m['means']), len(m['pool']), unused, len(m['quests']),
         len(m['ledges']), len(m['medges'])))
     print('오류 %d, 주의 %d, 참고 %d  → %s' % (counts['error'], counts['warn'], counts['info'], dest))
+    print(weak_report(m))
     if open_it:
         webbrowser.open(pathlib.Path(dest).as_uri())
 
@@ -525,6 +549,7 @@ def cmd_check(show_suggest, verbose=False):
     print('\n씨앗 %d, 수단 %d, 퀘스트라인 %d, 엮임 %d, 수단 연결 %d' % (
         len(m['seeds']), len(m['means']), len(m['quests']), len(m['ledges']), len(m['medges'])))
     print('오류 %d, 주의 %d, 참고 %d' % (counts['error'], counts['warn'], counts['info']))
+    print(weak_report(m))
     if show_suggest:
         print('\n엮임 보강 후보 (연결이 적은 씨앗과, 드문 수단을 같이 쓰는 씨앗)')
         low = sorted(m['seeds'], key=lambda s: (s['deg'], s['id']))[:15]

@@ -236,7 +236,8 @@ function render(){
     if(n.type==='seed'){ shape=mk('circle',{class:'shape',r:r,fill:bcolor[n.bundle]+'cc',stroke:bcolor[n.bundle]},g); }
     else if(n.type==='means'){ const col=MCOL[n.d.cat]||'#a9b6c6';
       shape=mk('rect',{class:'shape',x:-r*1.5,y:-r*.7,width:r*3,height:r*1.4,rx:6,fill:'#1a212d',stroke:n.d.big?'#f5c542':col},g);
-      if(n.d.big) shape.setAttribute('stroke-width','2.6'); }
+      if(n.d.big) shape.setAttribute('stroke-width','2.6');
+      if(n.d.weak) shape.setAttribute('stroke-dasharray','5 3'); }
     else { shape=mk('path',{class:'shape',d:'M0,-6 L6,0 L0,6 L-6,0 Z',fill:'#10141b',stroke:'#8b98a9'},g); }
     const tx=mk('text',{x:n.type==='means'?0:r+4,y:n.type==='means'?4:4,'text-anchor':n.type==='means'?'middle':'start'},g);
     tx.textContent=n.label;
@@ -354,7 +355,7 @@ function linkify(text, bundle){
   return parts.join('');
 }
 function pathHtml(p){
-  const chips=p.means.map(m=>'<span class="chip c" data-id="m:'+esc(m.name)+'">'+esc(m.name)+(m.state?' · '+esc(m.state):'')+'</span>').join('');
+  const chips=p.means.map(m=>'<span class="chip c" data-id="m:'+esc(m.name)+'"'+((meansBy[m.name]&&meansBy[m.name].weak)?' style="border-style:dashed;border-color:#e6b450" title="근거 약함"':'')+'>'+esc(m.name)+((meansBy[m.name]&&meansBy[m.name].weak)?' △':'')+(m.state?' · '+esc(m.state):'')+'</span>').join('');
   const help=p.means.map(m=>{ const d=meansBy[m.name]; const w=d&&d.cells&&d.cells['무엇인가'];
     return w?'<div><b>'+esc(m.name)+'</b> — '+esc(String(w).replace(/\*\*/g,''))+'</div>':''; }).join('');
   let t=esc(p.text).replace(/ → /g,'<br><span class="res">→ </span>').replace(/(남는 것:)/g,'<b>$1</b>');
@@ -388,7 +389,8 @@ function renderDetail(){
       d.suggest.forEach(sg=>{ const t=nodes[sg.id]; h+='<div class="row" data-id="'+t.id+'"><span class="nm">'+esc(t.label)+'</span><span class="n">'+esc(sg.shared.join(', '))+'</span></div>'; }); }
     const ls=lintBy[id]||[]; if(ls.length){ h+='<h4>이 씨앗의 문제</h4>'+ls.map(l=>'<div class="prob '+l.level+'">'+esc(l.msg)+'</div>').join(''); }
   } else if(n.type==='means'){
-    h+='<h2>'+esc(d.name)+(d.big?' ★':'')+'</h2><span class="chip">'+esc(d.cat)+'</span>'+(d.known?'':'<span class="chip" style="border-color:#ff5d5d">목록에 정의 없음</span>')+'<span class="chip">씨앗 '+d.uses+'곳</span>';
+    h+='<h2>'+esc(d.name)+(d.big?' ★':'')+'</h2><span class="chip">'+esc(d.cat)+'</span>'+(d.known?'':'<span class="chip" style="border-color:#ff5d5d">목록에 정의 없음</span>')+'<span class="chip">씨앗 '+d.uses+'곳</span>'+(d.weak?'<span class="chip" style="border-color:#e6b450;color:#e6b450">근거 약함</span>':'');
+    if(d.weak) h+='<div class="small" style="margin:8px 0;border-left:2px solid #e6b450;padding-left:8px">근거 약함: '+esc(d.weak)+'<br>씨앗에 쓸 때는 원리를 모르는 유물 쪽으로 읽는 것이 안전하다.</div>';
     const keys=Object.keys(d.cells||{}).filter(k=>k!=='이름'&&d.cells[k]&&d.cells[k]!=='-');
     if(keys.length){ h+='<h4>수단 목록의 설명</h4><div class="kv">'+keys.map(k=>'<div>'+esc(k)+'</div><div>'+esc(String(d.cells[k]).replace(/\*\*/g,''))+'</div>').join('')+'</div>'; }
     const by={}; edges.filter(e=>e.t===id).forEach(e=>{ const key=(e.states.join(', ')||'가동'); (by[key]=by[key]||[]).push(e); });
@@ -420,7 +422,7 @@ function renderLeft(){
     h+='<div class="grp"><h3>배치</h3>'+[['time','시간순 (가로가 시기)'],['bundle','묶음별 (세로가 묶음)'],['free','자유']].map(([v,t])=>'<label class="chk"><input type="radio" name="lay" data-l="'+v+'" '+(S.layout===v?'checked':'')+'><span class="nm">'+t+'</span></label>').join('')+'</div>';
     h+='<div class="btns"><button id="bAll">모두 켜기</button><button id="bClearPins">고른 수단 지우기</button></div>';
   } else if(S.tab==='means'){
-    h+='<input type="text" id="mq" placeholder="수단 이름 찾기" value="'+esc(S.mq||'')+'"><div style="height:8px"></div><div id="mlist"></div>';
+    h+='<input type="text" id="mq" placeholder="수단 이름 찾기" value="'+esc(S.mq||'')+'"><label class="chk"><input type="checkbox" id="mweak" '+(S.mweak?'checked':'')+'><span class="nm">근거 약한 것만 △</span></label><div style="height:8px"></div><div id="mlist"></div>';
   } else {
     const grp={error:[],warn:[],info:[]}; DATA.lint.forEach(l=>grp[l.level].push(l));
     const one=(l)=>'<div class="prob '+l.level+'" '+(l.id?'data-pid="'+l.id+'"':'')+'>'+esc(l.msg)+'</div>';
@@ -433,8 +435,8 @@ function renderLeft(){
 }
 function renderMeansList(){
   const q=(S.mq||'').toLowerCase(); let h='';
-  DATA.means.slice().sort((a,b)=>b.uses-a.uses).filter(m=>!q||m.name.toLowerCase().includes(q)).forEach(m=>{
-    h+='<div class="row'+(S.sel===m.id?' on':'')+'" data-mid="'+esc(m.id)+'"><span class="sw" style="background:'+(MCOL[m.cat]||'#a9b6c6')+(m.big?';outline:2px solid #f5c542':'')+'"></span><span class="nm">'+esc(m.name)+'</span><span class="n">'+m.uses+'</span></div>'; });
+  DATA.means.slice().sort((a,b)=>b.uses-a.uses).filter(m=>(!q||m.name.toLowerCase().includes(q))&&(!S.mweak||m.weak)).forEach(m=>{
+    h+='<div class="row'+(S.sel===m.id?' on':'')+'" data-mid="'+esc(m.id)+'"><span class="sw" style="background:'+(MCOL[m.cat]||'#a9b6c6')+(m.big?';outline:2px solid #f5c542':'')+'"></span><span class="nm">'+esc(m.name)+(m.weak?' △':'')+'</span><span class="n">'+m.uses+'</span></div>'; });
   $('#mlist').innerHTML=h;
 }
 $('#leftbody').addEventListener('change',ev=>{
@@ -456,6 +458,7 @@ $('#leftbody').addEventListener('click',ev=>{
   const p=t.closest('[data-pid]'); if(p){ select(p.dataset.pid,true); }
 });
 $('#leftbody').addEventListener('input',ev=>{ if(ev.target.id==='mq'){ S.mq=ev.target.value; renderMeansList(); } });
+$('#leftbody').addEventListener('change',ev=>{ if(ev.target.id==='mweak'){ S.mweak=ev.target.checked; renderMeansList(); } });
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{ S.tab=b.dataset.t; renderLeft(); }));
 
 function rebuild(relayout,keepSel){
@@ -470,7 +473,8 @@ function updateLegend(){
   h+='<div><i style="border-color:#4fd0c8"></i>엮임 (한쪽이 다른 쪽을 바꿈)</div><div><i style="border-color:#8b98a9;border-top-style:dashed"></i>퀘스트라인</div>'
    +'<div><i style="border-color:#ff9f43"></i>탑재 중 <i style="border-color:#5fd38a"></i>배양 중 <i style="border-color:#6ea8ff"></i>연구</div>'
    +'<div><i style="border-color:#8b98a9"></i>대체됨 <i style="border-color:#ef6b6b"></i>낡음·고장 <i style="border-color:#b79cf0"></i>내력</div>'
-   +'<div><span style="display:inline-block;width:16px;height:9px;border:2px solid #f5c542;border-radius:3px"></span>큰 테크 6종</div>';
+   +'<div><span style="display:inline-block;width:16px;height:9px;border:2px solid #f5c542;border-radius:3px"></span>큰 테크 6종</div>'
+   +'<div><span style="display:inline-block;width:16px;height:9px;border:2px dashed #e6b450;border-radius:3px"></span>근거 약한 풀 후보 △</div>';
   $('#legend').innerHTML=h;
 }
 $('#search').addEventListener('input',ev=>{ S.search=ev.target.value; applyHighlight(); });
