@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>씨앗 게임</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#10141b;--panel:#171d27;--panel2:#1e2633;--line:#2b3545;--text:#dfe6ee;--dim:#8b98a9;--accent:#4fd0c8;
+  --err:#ff5d5d;--warn:#f2c14e;--ok:#5fd38a;--gold:#f5c542}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.6 "Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;display:grid;
+  grid-template:52px 1fr/330px 1fr 380px;grid-template-areas:"top top top" "left center right";overflow:hidden}
+button,select,input{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 12px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled,select:disabled,input:disabled{opacity:.45;cursor:not-allowed}
+select{background:#0d1118;border:1px solid var(--line);border-radius:6px;padding:3px 6px;max-width:150px}
+header{grid-area:top;display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:16px;margin:0 8px 0 0;white-space:nowrap}
+header label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.sp{flex:1}
+#left,#right{background:var(--panel);overflow:auto;padding:14px 16px;min-height:0}
+#left{grid-area:left;border-right:1px solid var(--line)}
+#right{grid-area:right;border-left:1px solid var(--line)}
+#center{grid-area:center;overflow:auto;padding:18px 24px;min-height:0}
+h2{font-size:14px;margin:0 0 10px;color:var(--dim)}
+h3{font-size:13px;margin:0 0 6px;color:var(--accent)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.note{color:var(--warn);font-size:13px;margin:6px 0}
+.rev{font-size:13px;margin:8px 0 12px;padding:6px 8px;border-radius:6px;background:var(--panel2)}
+.rev.on{border-left:3px solid var(--ok)}.rev.off{border-left:3px solid var(--dim)}
+.grp{margin:12px 0 4px;font-size:12px;color:var(--dim);font-weight:600}
+.hold{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0}
+.hold small{color:var(--dim)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 22px;max-width:760px}
+.badge{display:inline-block;padding:1px 10px;border-radius:10px;font-size:12px;font-weight:600;border:1px solid var(--line)}
+.badge.열림{color:var(--gold);border-color:var(--gold)}.badge.풀림{color:var(--ok);border-color:var(--ok)}
+.badge.방치{color:var(--warn);border-color:var(--warn)}.badge.놓침{color:var(--err);border-color:var(--err)}
+.question{font-size:19px;font-weight:600;margin:12px 0}
+.general{padding:8px 12px;border-left:3px solid var(--dim);background:var(--panel2);margin:10px 0}
+.blk{margin:12px 0}.blk b{display:block;color:var(--dim);font-size:12px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.opt{text-align:left;padding:9px 14px}
+.opt b{display:block}.opt span{display:block;color:var(--dim);font-size:13px;margin-top:2px}
+.opt em{display:block;color:var(--warn);font-size:12px;font-style:normal;margin-top:3px}
+.outcome{margin-top:14px;padding:10px 14px;border-radius:8px;background:var(--panel2)}
+.outcome b{color:var(--accent)}
+.fail{background:#3a1416;border:2px solid var(--err);border-radius:10px;padding:18px 22px;font-size:17px;max-width:760px}
+.fail b{display:block;font-size:22px;margin-bottom:6px;color:var(--err)}
+.author{margin-top:22px;max-width:760px}
+.panel{border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin-bottom:12px;background:#131923}
+.panel dl{margin:0}.panel dt{color:var(--dim);font-size:12px;margin-top:6px}.panel dd{margin:0}
+.panel ul{margin:4px 0;padding-left:18px}
+.panel pre{white-space:pre-wrap;font:12px/1.5 Consolas,"Malgun Gothic",monospace;margin:0}
+.ok{color:var(--ok)}.bad{color:var(--err)}.dim{color:var(--dim)}
+#log{list-style:none;margin:0;padding:0}
+#log li{padding:6px 0;border-bottom:1px solid var(--line)}
+#log .au{color:var(--warn);display:block;font-size:12px}
+</style>
+</head>
+<body>
+<header id="top"></header>
+<aside id="left"></aside>
+<main id="center"></main>
+<aside id="right"></aside>
+<script>/*__ENGINE__*/</script>
+<script>
+'use strict';
+// 가진 것 패널(수단 상태 선택)과 프리셋 버튼은 1단계 시험 장치다. 2단계의 능력 목록 화면이 아니다.
+const DATA = /*__DATA__*/null;
+
+const ctx = { seed: DATA.seed, human: DATA.human, sidecar: DATA.sidecar, meta: DATA.meta, holdings: null };
+let st = Engine.start();
+let author = false;
+let failure = null; // 주소나 행동의 오류. 있으면 화면은 멈춘 채 오류를 크게 보인다.
+let presetNote = '';
+
+// 요소 만들기. 글은 textContent로만 넣는다. 조건부로 안 그릴 자식은 null로 넘긴다.
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  Object.entries(props).forEach(([k, v]) => {
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (v === true) el.setAttribute(k, '');
+    else if (v !== false) el.setAttribute(k, v);
+  });
+  kids.flat(Infinity).filter(k => k !== null).forEach(k => el.append(k));
+  return el;
+}
+
+// 자식 목록(배열이 섞여도, 안 그릴 자리는 null이어도 됨)으로 요소 내용을 통째로 바꾼다.
+function fill(el, ...kids) {
+  el.replaceChildren(...kids.flat(Infinity).filter(k => k !== null));
+}
+
+function applyPreset(name) {
+  ctx.holdings = Engine.presetHoldings(name, DATA);
+  if (name !== 'kit') return '';
+  const r = Engine.reviewOpen(ctx.human.review, ctx.meta, ctx.holdings);
+  return r.open ? '출발 장비만으로 검토 능력이 이미 있음: ' + r.by.join(', ') + '가 가동' : '출발 장비만으로는 검토 능력이 없음';
+}
+
+// 주소 조각(#preset=...&do=...&author=1)을 읽어 시작 상태를 만든다. 모르는 프리셋이나 행동이면 오류로 멈춘다.
+try {
+  const link = Engine.parseLink(location.hash);
+  author = link.author;
+  presetNote = applyPreset(link.preset);
+  link.actions.forEach(a => { st = Engine.applyAction(st, ctx, a); });
+} catch (e) {
+  failure = e.message;
+}
+// 주소 조각을 고치고 엔터를 치면 새로 읽는다.
+window.addEventListener('hashchange', () => location.reload());
+
+function act(fn) {
+  try { fn(); } catch (e) { failure = e.message; }
+  render();
+}
+
+function failBox() {
+  return h('div', { class: 'fail' }, h('b', {}, '오류, 멈춤'), failure, h('div', { class: 'dim' }, '주소 조각을 고쳐 다시 열 것.'));
+}
+
+function render() {
+  try {
+    draw();
+  } catch (e) {
+    failure = e.message;
+    ['top', 'left', 'center', 'right'].forEach(id => fill(document.getElementById(id)));
+    fill(document.getElementById('center'), failBox());
+  }
+}
+
+function draw() {
+  const frozen = failure !== null;
+  drawTop(frozen);
+  if (ctx.holdings === null) {
+    ['left', 'right'].forEach(id => fill(document.getElementById(id)));
+    fill(document.getElementById('center'), failBox());
+    return;
+  }
+  drawLeft(frozen);
+  drawCenter(frozen);
+  drawLog();
+}
+
+function drawTop(frozen) {
+  fill(document.getElementById('top'),
+    h('h1', {}, '씨앗 게임 1단계 — ' + DATA.seed.title),
+    h('label', {}, h('input', { type: 'checkbox', checked: author, disabled: frozen, onchange: e => { author = e.target.checked; render(); } }), '작성자 보기'),
+    h('span', { class: 'sp' }),
+    h('button', { disabled: frozen || st.status !== '열림' || ctx.holdings === null, onclick: () => act(() => { st = Engine.applyAction(st, ctx, 'close'); }) }, '방치로 닫기(수동)'),
+    h('button', { title: '사건과 일지만 처음으로. 가진 것은 그대로', disabled: frozen, onclick: () => act(() => { st = Engine.start(); }) }, '처음부터'));
+}
+
+function drawLeft(frozen) {
+  const r = Engine.reviewOpen(ctx.human.review, ctx.meta, ctx.holdings);
+  const means = ctx.human.review.means;
+  const revText = means.length === 0
+    ? '검토 능력: 목록이 비어 있어 능력 검토가 열리지 않음'
+    : r.open ? '검토 능력: 있음 (가동: ' + r.by.join(', ') + ')' : '검토 능력: 없음 (' + means.join(' 또는 ') + ' 중 하나가 가동이어야 함)';
+  function row(n) {
+    const opts = Engine.holdOptions(ctx.meta[n], DATA.tags[n]);
+    return h('div', { class: 'hold' }, h('span', {}, n, ' ', h('small', {}, '(' + ctx.meta[n].cat + ')')),
+      h('select', { disabled: frozen, onchange: e => { ctx.holdings = Object.assign({}, ctx.holdings, { [n]: e.target.value }); presetNote = ''; render(); } },
+        opts.map(o => h('option', { value: o, selected: ctx.holdings[n] === o }, o))));
+  }
+  // 플레이 보기는 검토 능력 수단만 그린다. 길 요구의 수단 이름은 숨긴 길을 가리키므로 작성자 보기에서만 그린다.
+  const rest = Engine.panelNames(DATA, author).filter(n => !means.includes(n));
+  const reqNames = DATA.seed.paths.flatMap(p => p.means.map(r => r.name));
+  const inPaths = rest.filter(n => reqNames.includes(n));
+  const presetOnly = rest.filter(n => !reqNames.includes(n));
+  const presets = [['kit', '출발 장비'], ['none', '아무것도 없음'], ['ability', '능력 있음 예시']];
+  fill(document.getElementById('left'),
+    h('h2', {}, '가진 것 (수동, 1단계 시험용)'),
+    h('div', { class: 'presets' }, presets.map(([name, label]) =>
+      h('button', { disabled: frozen, onclick: () => act(() => { presetNote = applyPreset(name); }) }, label))),
+    presetNote ? h('div', { class: 'note' }, presetNote) : null,
+    h('div', { class: 'rev ' + (r.open ? 'on' : 'off') }, revText),
+    h('div', { class: 'grp' }, '검토 능력 수단'), means.map(row),
+    author ? [h('div', { class: 'grp' }, '이 씨앗의 길 요구에 나오는 수단'), inPaths.map(row)] : h('div', { class: 'note' }, '나머지 가진 것은 프리셋이 정함 (작성자 보기에서 보임)'),
+    presetOnly.length ? [h('div', { class: 'grp' }, '프리셋에만 쓰이는 수단 (이 씨앗에서는 효과 없음)'), presetOnly.map(row)] : null);
+}
+
+function drawCenter(frozen) {
+  const v = Engine.publicView(st, ctx);
+  const card = h('section', { class: 'card' }, h('span', { class: 'badge ' + v.status }, v.status === '놓침' ? '놓침(못 알아봄)' : v.status),
+    h('div', { class: 'question' }, v.question),
+    v.general ? h('div', { class: 'general' }, v.general) : null);
+  if (v.reveal) {
+    card.append(h('div', { class: 'blk' }, h('b', {}, '사정'), v.reveal.sajeong),
+      h('div', { class: 'blk' }, h('b', {}, '징후'), v.reveal.signs),
+      h('div', { class: 'blk' }, h('b', {}, '걸림돌'), v.reveal.obstacle));
+  }
+  if (v.options.length) {
+    card.append(h('div', { class: 'opts' }, v.options.map(o => h('button', { class: 'opt', disabled: frozen, onclick: () => act(() => { st = Engine.applyAction(st, ctx, o.act); }) },
+      h('b', {}, o.label), o.text ? h('span', {}, o.text) : null, o.mount ? h('em', {}, o.mount) : null))));
+  }
+  if (v.outcome) {
+    card.append(h('div', { class: 'outcome' }, h('b', {}, '여파: ' + v.outcome.title), h('div', {}, v.outcome.result),
+      v.outcome.left ? h('div', {}, '남는 것: ' + v.outcome.left) : null));
+  }
+  const kids = frozen ? [failBox(), card] : [card];
+  if (author) kids.push(drawAuthor());
+  fill(document.getElementById('center'), kids);
+}
+
+function box(title, ...kids) {
+  return h('section', { class: 'panel' }, h('h3', {}, title), ...kids);
+}
+
+function drawAuthor() {
+  const s = ctx.seed;
+  const sc = DATA.sidecar;
+  const a = Engine.authorView(ctx);
+  const dl = rows => h('dl', {}, rows.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)]));
+  const effects = sc.state === '정상'
+    ? Object.entries(sc.effects).map(([name, list]) => h('li', {}, name, h('ul', {}, list.map(e => h('li', {}, Engine.describeEffect(e), h('span', { class: 'dim' }, '  — 근거: ' + e['근거']))))))
+    : [h('li', { class: 'bad' }, '사이드카 상태가 ' + sc.state + '이라 효과층을 안 씀')];
+  return h('div', { class: 'author' },
+    box('씨앗 열쇠와 지문과 사이드카', dl([
+      ['열쇠', s.key + ' (시기 ' + s.eras + ', 노리는 곳 ' + s.targets.join(', ') + ')'],
+      ['문서 지문', sc.fingerprintDoc], ['사이드카 지문', sc.fingerprintSidecar || '(없음)'],
+      ['사이드카 상태', h('span', { class: sc.state === '정상' ? 'ok' : 'bad' }, sc.state)]])),
+    box('원문', dl([['사정', s.sajeong], ['징후 1', s.sign1], ['징후 2', s.sign2], ['걸림돌', s.obstacle], ['맨손', s.bare], ['방치', s.ignore]])),
+    box('길 ' + a.paths.length + '개: 요구와 채움', h('ul', {}, a.paths.map(p => h('li', {},
+      p.n + '. ' + p.name + ' — 요구: ' + p.requirement + ' → ', h('span', { class: p.ok ? 'ok' : 'bad' }, p.ok ? '채움' : '못 채움'),
+      p.mounts.length ? ' (' + Engine.MOUNT_NOTE + ': ' + p.mounts.join(', ') + ')' : '',
+      p.ok ? null : h('div', { class: 'dim' }, '모자란 것: ' + p.parts.filter(x => !x.ok).map(x => x.reason).join('; ')))))),
+    box('검토 능력 (' + ctx.human.review.status + ')', h('div', {}, '목록: ' + (a.review.means.join(', ') || '(비어 있음)')),
+      h('div', { class: a.review.open ? 'ok' : 'bad' }, a.review.open ? '지금 열림 (가동: ' + a.review.by.join(', ') + ')' : '지금 안 열림')),
+    box('효과층 초안 (검토: ' + sc.checked + ', 게임은 "됨"만 씀)', h('ul', {}, effects)),
+    box('내보내기 보고', h('pre', {}, DATA.report)));
+}
+
+function drawLog() {
+  const items = st.log.map(e => h('li', {}, e.text, author && e.author ? h('span', { class: 'au' }, '작성자: ' + e.author) : null));
+  fill(document.getElementById('right'), h('h2', {}, '일지'),
+    items.length ? h('ol', { id: 'log' }, items) : h('div', { class: 'dim' }, '아직 아무 일도 없음'));
+}
+
+render();
+</script>
+</body>
+</html>
