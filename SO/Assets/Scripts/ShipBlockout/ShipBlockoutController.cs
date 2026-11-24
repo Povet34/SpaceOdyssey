@@ -62,6 +62,12 @@ namespace SpaceOdyssey.Blockout
 
         public bool LidClosed => _lidClosed;
 
+        /// <summary>Q/E로 정해진 화면 방향(도). 보간 중인 값이 아니라 목표값이라 항상 45도 + 90도의 배수다.</summary>
+        public float ViewYaw => _targetYaw;
+
+        /// <summary>뚜껑을 열고 닫거나 화면 방향이 바뀐 뒤 불린다. 구조층 단면 높이를 다시 정할 때 쓴다.</summary>
+        public event System.Action ViewChanged;
+
         readonly List<Wall> _walls = new List<Wall>();
         Renderer[] _exteriorRenderers;
         bool _lidClosed;
@@ -190,6 +196,7 @@ namespace SpaceOdyssey.Blockout
             var mode = closed ? ShadowCastingMode.On : ShadowCastingMode.ShadowsOnly;
             foreach (var r in _exteriorRenderers) if (r) r.shadowCastingMode = mode;
             ApplyWalls();
+            ViewChanged?.Invoke();
         }
 
         void ApplyWalls()
@@ -215,8 +222,8 @@ namespace SpaceOdyssey.Blockout
 
             if (kb != null)
             {
-                if (kb.qKey.wasPressedThisFrame) { _targetYaw -= 90f; ApplyWalls(); }
-                if (kb.eKey.wasPressedThisFrame) { _targetYaw += 90f; ApplyWalls(); }
+                if (kb.qKey.wasPressedThisFrame) { _targetYaw -= 90f; ApplyWalls(); ViewChanged?.Invoke(); }
+                if (kb.eKey.wasPressedThisFrame) { _targetYaw += 90f; ApplyWalls(); ViewChanged?.Invoke(); }
             }
             _yaw = Mathf.SmoothDampAngle(_yaw, _targetYaw, ref _yawVel, 0.25f);
 

@@ -58,7 +58,9 @@
 
 ### 우주선
 
-[ShipBuildDesign.md](ShipBuildDesign.md) 끝의 "이어서 할 일"을 본다. 그 문서 12장에 사용자가 정해야 할 질문이 있다.
+**[ShipStatus.md](ShipStatus.md)를 먼저 읽는다.** 통로 그물, 세그먼트와 모듈 분리 모델의 현재 상태, 결정된 것, 다음 단계(A1 승인 대기), 커밋 안 된 목록이 거기 있다. 기준 계획서는 [ShipLayoutNetworkPlan.md](ShipLayoutNetworkPlan.md)다.
+
+[ShipBuildDesign.md](ShipBuildDesign.md)의 "이어서 할 일"(13장)은 옛 기준(2m 칸, 방 = 모듈)이 섞여 있다. 0.1~0.6절이 결정 기록이고, 충돌하면 0.x절이 이긴다.
 
 ## 5. 작업 규칙
 

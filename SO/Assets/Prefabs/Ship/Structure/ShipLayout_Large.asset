@@ -1,0 +1,2800 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd73a43fba3caa5428649d44312ecbc1, type: 3}
+  m_Name: ShipLayout_Large
+  m_EditorClassIdentifier: Assembly-CSharp::SpaceOdyssey.Blockout.ShipLayout
+  <Seed>k__BackingField: 20261124
+  <Rooms>k__BackingField:
+  - name: Corridor
+    origin: {x: 2, y: 9}
+    size: {x: 23, y: 2}
+    windows: 0
+    floorColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  - name: DroneHangar
+    origin: {x: 2, y: 11}
+    size: {x: 7, y: 5}
+    windows: 0
+    floorColor: {r: 0.75, g: 0.6, b: 0.29999998, a: 1}
+  - name: Workshop
+    origin: {x: 9, y: 11}
+    size: {x: 5, y: 5}
+    windows: 0
+    floorColor: {r: 0.7, g: 0.45, b: 0.34999996, a: 1}
+  - name: Lab
+    origin: {x: 14, y: 11}
+    size: {x: 5, y: 5}
+    windows: 0
+    floorColor: {r: 0.45, g: 0.54999995, b: 0.8, a: 1}
+  - name: WindowNook
+    origin: {x: 19, y: 11}
+    size: {x: 6, y: 5}
+    windows: 1
+    floorColor: {r: 0.54999995, g: 0.45, b: 0.7, a: 1}
+  - name: Storage
+    origin: {x: 2, y: 4}
+    size: {x: 5, y: 5}
+    windows: 0
+    floorColor: {r: 0.54999995, g: 0.5, b: 0.41999996, a: 1}
+  - name: Kitchen
+    origin: {x: 7, y: 4}
+    size: {x: 6, y: 5}
+    windows: 0
+    floorColor: {r: 0.8, g: 0.75, b: 0.5, a: 1}
+  - name: HibernationRoom
+    origin: {x: 13, y: 4}
+    size: {x: 6, y: 5}
+    windows: 0
+    floorColor: {r: 0.39999998, g: 0.7, b: 0.75, a: 1}
+  - name: Quarters
+    origin: {x: 19, y: 4}
+    size: {x: 6, y: 5}
+    windows: 0
+    floorColor: {r: 0.6, g: 0.5, b: 0.54999995, a: 1}
+  - name: Bridge
+    origin: {x: 25, y: 8}
+    size: {x: 4, y: 4}
+    windows: 1
+    floorColor: {r: 0.5, g: 0.65, b: 0.6, a: 1}
+  <Doors>k__BackingField:
+  - cellA: {x: 4, y: 8}
+    cellB: {x: 4, y: 9}
+  - cellA: {x: 4, y: 10}
+    cellB: {x: 4, y: 11}
+  - cellA: {x: 5, y: 10}
+    cellB: {x: 5, y: 11}
+  - cellA: {x: 10, y: 8}
+    cellB: {x: 10, y: 9}
+  - cellA: {x: 11, y: 10}
+    cellB: {x: 11, y: 11}
+  - cellA: {x: 16, y: 8}
+    cellB: {x: 16, y: 9}
+  - cellA: {x: 16, y: 10}
+    cellB: {x: 16, y: 11}
+  - cellA: {x: 22, y: 8}
+    cellB: {x: 22, y: 9}
+  - cellA: {x: 22, y: 10}
+    cellB: {x: 22, y: 11}
+  - cellA: {x: 24, y: 9}
+    cellB: {x: 25, y: 9}
+  - cellA: {x: 24, y: 10}
+    cellB: {x: 25, y: 10}
+  <FurnitureItems>k__BackingField:
+  - name: DroneDock_1
+    shape: 2
+    position: {x: 4, y: 0.1, z: 14}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 1.6, y: 0.1, z: 1.6}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: DroneDock_2
+    shape: 2
+    position: {x: 7, y: 0.1, z: 14}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 1.6, y: 0.1, z: 1.6}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Drone_1
+    shape: 0
+    position: {x: 4, y: 0.55, z: 14}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.8, y: 0.4, z: 0.8}
+    color: {r: 0.95, g: 0.65, b: 0.14999998, a: 1}
+    emissive: 0
+  - name: Drone_2
+    shape: 0
+    position: {x: 7, y: 0.55, z: 14}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.8, y: 0.4, z: 0.8}
+    color: {r: 0.95, g: 0.65, b: 0.14999998, a: 1}
+    emissive: 0
+  - name: HangarBench
+    shape: 3
+    position: {x: 6, y: 0.45, z: 15.45}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 3, y: 0.9, z: 0.7}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: ChargerRack
+    shape: 3
+    position: {x: 2.5, y: 1, z: 12.8}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.5, y: 2, z: 2.4}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: HangarCrate
+    shape: 3
+    position: {x: 8.2, y: 0.4, z: 12.3}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.8, y: 0.8, z: 0.8}
+    color: {r: 0.95, g: 0.65, b: 0.14999998, a: 1}
+    emissive: 0
+  - name: Workbench
+    shape: 3
+    position: {x: 11.5, y: 0.45, z: 15.4}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 3.6, y: 0.9, z: 0.7}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Fabricator
+    shape: 3
+    position: {x: 9.7, y: 0.8, z: 12.9}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.9, y: 1.6, z: 1.2}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: ToolWall
+    shape: 3
+    position: {x: 13.55, y: 1, z: 13.5}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.3, y: 2, z: 3}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Lathe
+    shape: 3
+    position: {x: 12.7, y: 0.6, z: 12.6}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 1, y: 1.2, z: 0.9}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: LabTable
+    shape: 3
+    position: {x: 16.5, y: 0.45, z: 15.3}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 3.4, y: 0.9, z: 0.8}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Analyzer
+    shape: 3
+    position: {x: 14.7, y: 0.7, z: 13}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.9, y: 1.4, z: 1.2}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: RelicBase
+    shape: 3
+    position: {x: 17.9, y: 0.35, z: 13.3}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.6, y: 0.7, z: 0.6}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Relic
+    shape: 0
+    position: {x: 17.9, y: 1, z: 13.3}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.5, y: 0.5, z: 0.5}
+    color: {r: 1, g: 0.54999995, b: 0.14999998, a: 1}
+    emissive: 1
+  - name: NookBench
+    shape: 3
+    position: {x: 21.5, y: 0.25, z: 15.3}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 3.2, y: 0.5, z: 0.6}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: NookTable
+    shape: 3
+    position: {x: 21.5, y: 0.3, z: 13}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 1.2, y: 0.6, z: 1.2}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Plant_1
+    shape: 0
+    position: {x: 23.6, y: 0.4, z: 12.4}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.6, y: 0.8, z: 0.6}
+    color: {r: 0.29999998, g: 0.7, b: 0.29999998, a: 1}
+    emissive: 0
+  - name: Plant_2
+    shape: 0
+    position: {x: 19.7, y: 0.4, z: 15.3}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.6, y: 0.8, z: 0.6}
+    color: {r: 0.29999998, g: 0.7, b: 0.29999998, a: 1}
+    emissive: 0
+  - name: StorageShelf_W
+    shape: 3
+    position: {x: 2.5, y: 1, z: 6.2}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.5, y: 2, z: 4.4}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: StorageShelf_S
+    shape: 3
+    position: {x: 4.8, y: 1, z: 4.5}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 2.6, y: 2, z: 0.5}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Crate_1
+    shape: 3
+    position: {x: 5.6, y: 0.4, z: 6}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.8, y: 0.8, z: 0.8}
+    color: {r: 0.95, g: 0.65, b: 0.14999998, a: 1}
+    emissive: 0
+  - name: Crate_2
+    shape: 3
+    position: {x: 5.6, y: 0.4, z: 7}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.8, y: 0.8, z: 0.8}
+    color: {r: 0.95, g: 0.65, b: 0.14999998, a: 1}
+    emissive: 0
+  - name: Crate_3
+    shape: 3
+    position: {x: 4.6, y: 0.4, z: 6}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.8, y: 0.8, z: 0.8}
+    color: {r: 0.95, g: 0.65, b: 0.14999998, a: 1}
+    emissive: 0
+  - name: KitchenCounter
+    shape: 3
+    position: {x: 9.5, y: 0.45, z: 4.55}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 4.6, y: 0.9, z: 0.7}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Fridge
+    shape: 3
+    position: {x: 7.55, y: 0.95, z: 5.7}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.8, y: 1.9, z: 0.8}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: KitchenTable
+    shape: 3
+    position: {x: 9, y: 0.4, z: 6.4}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 1.8, y: 0.8, z: 1}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Stool_1
+    shape: 2
+    position: {x: 8.3, y: 0.25, z: 7.3}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.4, y: 0.25, z: 0.4}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Stool_2
+    shape: 2
+    position: {x: 9.3, y: 0.25, z: 7.3}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.4, y: 0.25, z: 0.4}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: PodBase
+    shape: 3
+    position: {x: 16, y: 0.15, z: 5.4}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 2.6, y: 0.3, z: 1.1}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: HibernationPod
+    shape: 1
+    position: {x: 16, y: 0.7, z: 5.4}
+    euler: {x: -0, y: -0, z: 90}
+    scale: {x: 0.9, y: 1.15, z: 0.9}
+    color: {r: 0.6, g: 0.9, b: 0.95, a: 1}
+    emissive: 0
+  - name: LifeSupport_1
+    shape: 3
+    position: {x: 13.8, y: 0.9, z: 7.2}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.7, y: 1.8, z: 0.7}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: LifeSupport_2
+    shape: 3
+    position: {x: 18.2, y: 0.9, z: 7.2}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.7, y: 1.8, z: 0.7}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: PodMonitor
+    shape: 3
+    position: {x: 16, y: 1.4, z: 4.2}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 1.6, y: 0.8, z: 0.15}
+    color: {r: 1, g: 0.54999995, b: 0.14999998, a: 1}
+    emissive: 1
+  - name: Bed
+    shape: 3
+    position: {x: 20.6, y: 0.3, z: 5.3}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 2, y: 0.6, z: 1.1}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Desk
+    shape: 3
+    position: {x: 23.6, y: 0.45, z: 5.6}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.6, y: 0.9, z: 1.8}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: QuartersShelf
+    shape: 3
+    position: {x: 22, y: 1, z: 4.4}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 2.2, y: 2, z: 0.4}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: Plant_3
+    shape: 0
+    position: {x: 20.4, y: 0.4, z: 7.6}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.6, y: 0.8, z: 0.6}
+    color: {r: 0.29999998, g: 0.7, b: 0.29999998, a: 1}
+    emissive: 0
+  - name: BridgeConsole
+    shape: 3
+    position: {x: 27.6, y: 0.5, z: 10}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.7, y: 1, z: 3.2}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  - name: PilotSeat
+    shape: 1
+    position: {x: 26.6, y: 0.5, z: 10}
+    euler: {x: -0, y: 0, z: 0}
+    scale: {x: 0.5, y: 0.5, z: 0.5}
+    color: {r: 0.54999995, g: 0.58, b: 0.62, a: 1}
+    emissive: 0
+  <Lights>k__BackingField:
+  - name: Light_Corridor_0
+    position: {x: 4.875, y: 2.6, z: 10}
+    range: 8
+    color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  - name: Light_Corridor_1
+    position: {x: 10.625, y: 2.6, z: 10}
+    range: 8
+    color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  - name: Light_Corridor_2
+    position: {x: 16.375, y: 2.6, z: 10}
+    range: 8
+    color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  - name: Light_Corridor_3
+    position: {x: 22.125, y: 2.6, z: 10}
+    range: 8
+    color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  - name: Light_DroneHangar
+    position: {x: 5.5, y: 2.6, z: 13.5}
+    range: 10
+    color: {r: 0.9, g: 0.84000003, b: 0.72, a: 1}
+  - name: Light_Workshop
+    position: {x: 11.5, y: 2.6, z: 13.5}
+    range: 8
+    color: {r: 0.88, g: 0.78, b: 0.74, a: 1}
+  - name: Light_Lab
+    position: {x: 16.5, y: 2.6, z: 13.5}
+    range: 8
+    color: {r: 0.78, g: 0.82, b: 0.92, a: 1}
+  - name: Light_WindowNook
+    position: {x: 22, y: 2.6, z: 13.5}
+    range: 9
+    color: {r: 0.82, g: 0.78, b: 0.88, a: 1}
+  - name: Light_Storage
+    position: {x: 4.5, y: 2.6, z: 6.5}
+    range: 8
+    color: {r: 0.82, g: 0.8, b: 0.768, a: 1}
+  - name: Light_Kitchen
+    position: {x: 10, y: 2.6, z: 6.5}
+    range: 9
+    color: {r: 0.92, g: 0.9, b: 0.8, a: 1}
+  - name: Light_HibernationRoom
+    position: {x: 16, y: 2.6, z: 6.5}
+    range: 9
+    color: {r: 0.76, g: 0.88, b: 0.9, a: 1}
+  - name: Light_Quarters
+    position: {x: 22, y: 2.6, z: 6.5}
+    range: 9
+    color: {r: 0.84000003, g: 0.8, b: 0.82, a: 1}
+  - name: Light_Bridge
+    position: {x: 27, y: 2.6, z: 10}
+    range: 7
+    color: {r: 0.8, g: 0.86, b: 0.84000003, a: 1}
+  <StructureCells>k__BackingField:
+  - cell: {x: -14, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -14, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -13, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -12, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -11, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -10, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -10, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -10, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -10, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -10, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -9, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -9, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -9, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -9, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -9, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -8, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -8, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -8, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -8, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -8, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -7, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -7, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -7, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -7, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -7, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -6, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -6, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -6, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -6, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -6, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -5, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -5, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -5, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -5, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -5, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: -8}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -4, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -4, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -4, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -4, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -4, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -4, y: 27}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -3, y: -8}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -3, y: -7}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -3, y: -6}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -3, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -3, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -3, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -3, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -3, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -3, y: 25}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -3, y: 26}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -3, y: 27}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -2, y: -7}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -2, y: -6}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -2, y: -5}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -2, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 6}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: -2, y: 7}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: -2, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -2, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -2, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -2, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -2, y: 12}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: -2, y: 13}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: -2, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -2, y: 24}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -2, y: 25}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -2, y: 26}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -1, y: -6}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -1, y: -5}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -1, y: -4}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -1, y: -3}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -1, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 6}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: -1, y: 7}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: -1, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -1, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -1, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -1, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: -1, y: 12}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: -1, y: 13}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: -1, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: -1, y: 22}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -1, y: 23}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -1, y: 24}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: -1, y: 25}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 0, y: -5}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 0, y: -4}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 0, y: -3}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 0, y: -2}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 0, y: 0}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 1}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 2}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 3}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 4}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 5}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 6}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 0, y: 7}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 0, y: 8}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: 0, y: 9}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: 0, y: 10}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: 0, y: 11}
+    role: 3
+    source: EnginePodCenter
+    durability: 1
+  - cell: {x: 0, y: 12}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 0, y: 13}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 0, y: 14}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 15}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 16}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 17}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 18}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 19}
+    role: 3
+    source: EnginePodOuter
+    durability: 1
+  - cell: {x: 0, y: 21}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 0, y: 22}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 0, y: 23}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 0, y: 24}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: -4}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: -3}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: -2}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: -1}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: 0}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: 1}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 4}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 5}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 6}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 7}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 8}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 9}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 10}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 11}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 12}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 13}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 14}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 15}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 1, y: 18}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: 19}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: 20}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: 21}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: 22}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 1, y: 23}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: -3}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: -2}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: -1}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: 0}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: 1}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 2, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 2, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 2, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 2, y: 18}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: 19}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: 20}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: 21}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 2, y: 22}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 3, y: -2}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 3, y: -1}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 3, y: 0}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 3, y: 1}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 3, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 3, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 3, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 3, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 3, y: 18}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 3, y: 19}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 3, y: 20}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 3, y: 21}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 4, y: -1}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 4, y: 0}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 4, y: 1}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 4, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 4, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 4, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 4, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 4, y: 18}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 4, y: 19}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 4, y: 20}
+    role: 1
+    source: RadiatorFin
+    durability: 1
+  - cell: {x: 5, y: 0}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 5, y: 1}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 5, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 5, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 5, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 5, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 5, y: 18}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 5, y: 19}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 6, y: 0}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 6, y: 1}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 6, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 6, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 6, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 6, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 6, y: 18}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 6, y: 19}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 7, y: 0}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 7, y: 1}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 7, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 7, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 7, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 7, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 7, y: 18}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 7, y: 19}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 8, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 8, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 8, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 8, y: 0}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 8, y: 1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 8, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 8, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 8, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 8, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 8, y: 18}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 8, y: 19}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 8, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 8, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 8, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: -4}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: 0}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: 1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 9, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 9, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 9, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 9, y: 18}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: 19}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 9, y: 23}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: -5}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: -4}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: 0}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: 1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 10, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 10, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 10, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 10, y: 18}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: 19}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: 23}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 10, y: 24}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: -6}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: -5}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: -4}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 0}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 11, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 11, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 11, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 11, y: 18}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 19}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 23}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 24}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 11, y: 25}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: -6}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: -5}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: -4}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 0}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 12, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 12, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 12, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 12, y: 18}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 19}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 23}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 24}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 12, y: 25}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: -6}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: -5}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: -4}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 0}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 13, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 13, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 13, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 13, y: 18}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 19}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 23}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 24}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 13, y: 25}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: -6}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: -5}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: -4}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 0}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 14, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 14, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 14, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 14, y: 18}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 19}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 23}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 24}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 14, y: 25}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: -5}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: -4}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: 0}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: 1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 15, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 15, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 15, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 15, y: 18}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: 19}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: 23}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 15, y: 24}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: -4}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: 0}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: 1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: 2}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 16, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 16, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 16, y: 17}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 16, y: 18}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: 19}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 16, y: 23}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 17, y: -3}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 17, y: -2}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 17, y: -1}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 17, y: 0}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 17, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 17, y: 2}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 17, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 17, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 17, y: 17}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 17, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 17, y: 19}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 17, y: 20}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 17, y: 21}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 17, y: 22}
+    role: 2
+    source: SideTank
+    durability: 1
+  - cell: {x: 18, y: 0}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 18, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 18, y: 2}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 18, y: 3}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 18, y: 16}
+    role: 0
+    source: Band
+    durability: 1
+  - cell: {x: 18, y: 17}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 18, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 18, y: 19}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 19, y: 0}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 19, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 19, y: 2}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 19, y: 17}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 19, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 19, y: 19}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 20, y: 0}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 20, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 20, y: 2}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 20, y: 17}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 20, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 20, y: 19}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 21, y: 0}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 21, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 21, y: 2}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 21, y: 17}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 21, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 21, y: 19}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 22, y: 0}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 22, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 22, y: 2}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 22, y: 17}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 22, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 22, y: 19}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 23, y: 0}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 23, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 23, y: 2}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 23, y: 17}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 23, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 23, y: 19}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 24, y: 0}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 24, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 24, y: 2}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 24, y: 17}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 24, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 24, y: 19}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 25, y: 0}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 25, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 25, y: 2}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 25, y: 17}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 25, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 25, y: 19}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 26, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 26, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 27, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 27, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 28, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 28, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 29, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 29, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 30, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 30, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 31, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 31, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 32, y: 1}
+    role: 1
+    source: BowProng
+    durability: 1
+  - cell: {x: 32, y: 18}
+    role: 1
+    source: BowProng
+    durability: 1

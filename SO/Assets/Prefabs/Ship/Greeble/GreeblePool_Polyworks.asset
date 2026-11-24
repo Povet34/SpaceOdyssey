@@ -1,0 +1,267 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f76f4dcd456206742b185f17d139e92c, type: 3}
+  m_Name: GreeblePool_Polyworks
+  m_EditorClassIdentifier: Assembly-CSharp::SpaceOdyssey.Blockout.ShipGreeblePool
+  <Entries>k__BackingField:
+  - prefab: {fileID: 296108594405147037, guid: aa19b0c5e5b050047ac768d783a8ae3f, type: 3}
+    layer: 0
+    footprint: 2
+    roles: 00000000010000000200000003000000i
+    weight: 1
+    size: {x: 2.000002, y: 0.50000167, z: 2.000002}
+    center: {x: 0, y: 0.24999519, z: 0}
+  - prefab: {fileID: 2436064863592028348, guid: 833365cbfd822c541b0a079e21486720, type: 3}
+    layer: 0
+    footprint: 2
+    roles: 00000000010000000200000003000000i
+    weight: 1
+    size: {x: 2.000002, y: 0.50000167, z: 2.000002}
+    center: {x: 0, y: 0.24999519, z: 0}
+  - prefab: {fileID: 1616931576596190586, guid: 01a0e52588000134ab7083aa5cff6a64, type: 3}
+    layer: 0
+    footprint: 2
+    roles: 00000000010000000200000003000000i
+    weight: 1
+    size: {x: 2.000002, y: 0.50000167, z: 2.000002}
+    center: {x: 0, y: 0.24999519, z: 0}
+  - prefab: {fileID: 6205783406440206720, guid: 37b6ccb01c7557547aeda32b5d37906a, type: 3}
+    layer: 0
+    footprint: 2
+    roles: 000000000100000003000000i
+    weight: 1
+    size: {x: 2.000002, y: 0.50000167, z: 2.000002}
+    center: {x: 0, y: 0.24999519, z: 0}
+  - prefab: {fileID: 7924643894430706473, guid: fb990efd411374d4f8b35a7578cc53a7, type: 3}
+    layer: 0
+    footprint: 2
+    roles: 0000000003000000i
+    weight: 1.5
+    size: {x: 2.000002, y: 0.50000167, z: 2.000002}
+    center: {x: 0, y: 0.24999519, z: 0}
+  - prefab: {fileID: 4234694841989978430, guid: 9bfa1c3f8a950c24c82a1e40bac91562, type: 3}
+    layer: 0
+    footprint: 2
+    roles: 0000000001000000i
+    weight: 0.6
+    size: {x: 2.000002, y: 0.50000167, z: 2.000002}
+    center: {x: 0, y: 0.24999519, z: 0}
+  - prefab: {fileID: 2355176605182000114, guid: 1395e3edc698b9c42b92868121862bc5, type: 3}
+    layer: 0
+    footprint: 2
+    roles: 01000000i
+    weight: 1
+    size: {x: 2, y: 0.28, z: 2}
+    center: {x: 0, y: 0.14, z: 0}
+  - prefab: {fileID: 838081407514010986, guid: 81b0e75321054644fb4279faf8c6a8b4, type: 3}
+    layer: 0
+    footprint: 2
+    roles: 0000000002000000i
+    weight: 1
+    size: {x: 1.8, y: 0.3, z: 1.8}
+    center: {x: 0, y: 0.15, z: 0}
+  - prefab: {fileID: 347547133151985801, guid: 81f8ed7394a695b4cb10c6f841879138, type: 3}
+    layer: 0
+    footprint: 1
+    roles: 00000000010000000200000003000000i
+    weight: 1
+    size: {x: 0.7862156, y: 0.4706945, z: 0.7862156}
+    center: {x: 0, y: 0.23534726, z: 0}
+  - prefab: {fileID: 6983734760179675650, guid: 13701ad969381f2489cd34316d8bed63, type: 3}
+    layer: 0
+    footprint: 1
+    roles: 0200000003000000i
+    weight: 1
+    size: {x: 0.7862156, y: 0.4706945, z: 0.7862156}
+    center: {x: 0, y: 0.23534726, z: 0}
+  - prefab: {fileID: 1577748359953194196, guid: 47f96cb4168abb14f805214811b07197, type: 3}
+    layer: 0
+    footprint: 1
+    roles: 0000000002000000i
+    weight: 1
+    size: {x: 1.05, y: 0.3, z: 1.05}
+    center: {x: 0, y: 0.15, z: 0}
+  - prefab: {fileID: 1715103436102026624, guid: ad769c84a413a4440a48669eeced92bc, type: 3}
+    layer: 0
+    footprint: 1
+    roles: 0000000003000000i
+    weight: 1
+    size: {x: 1.1856952, y: 0.22083385, z: 1.1856952}
+    center: {x: 0, y: 0.110414974, z: 0}
+  - prefab: {fileID: 5491073673225517821, guid: 08578d3daf774bb44bd485eb4c3512bc, type: 3}
+    layer: 0
+    footprint: 1
+    roles: 00000000i
+    weight: 0.7
+    size: {x: 1.05, y: 0.3, z: 1.8}
+    center: {x: 0, y: 0.15, z: 0}
+  - prefab: {fileID: 5592601646852111045, guid: 6b10fe04bb0eec3448fdb418e04deb47, type: 3}
+    layer: 0
+    footprint: 1
+    roles: 01000000i
+    weight: 1
+    size: {x: 1, y: 0.28, z: 2}
+    center: {x: 0, y: 0.14, z: 0}
+  - prefab: {fileID: 3440335160125420522, guid: e73e7ed150ec5464f8c43a69cc167ac5, type: 3}
+    layer: 0
+    footprint: 1
+    roles: 0000000001000000i
+    weight: 0.6
+    size: {x: 0.7752469, y: 0.77524656, z: 0.7752468}
+    center: {x: 0.00000014901161, y: 0.3876172, z: 0.00000020861626}
+  - prefab: {fileID: 3808276407789168192, guid: 2da95b366872af645b18898d56e38ba0, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 02000000i
+    weight: 1.5
+    size: {x: 2.7461882, y: 3.8828752, z: 2.6117802}
+    center: {x: 0.0000009536743, y: 1.9414355, z: 0.0000009536743}
+  - prefab: {fileID: 6378700646705014144, guid: 9d451c3ee6429914f8a1e4808e7a9941, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 02000000i
+    weight: 0.6
+    size: {x: 2.7461882, y: 3.8828752, z: 2.6117802}
+    center: {x: 0.0000009536743, y: 1.9414355, z: 0.0000009536743}
+  - prefab: {fileID: 6023449657137947998, guid: 6d0372965e36bd743ad044940f66b749, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 02000000i
+    weight: 1
+    size: {x: 4.928, y: 5.24775, z: 4.928}
+    center: {x: 0, y: 2.623875, z: 0}
+  - prefab: {fileID: 7539611212251620741, guid: fc923067507cbb64cafefa12974a9de7, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 0200000000000000i
+    weight: 0.8
+    size: {x: 2.074936, y: 4.863, z: 2.074936}
+    center: {x: 0, y: 2.4315, z: 0}
+  - prefab: {fileID: 3437342860513106476, guid: de5c06ab5c73f014a990b5faf442a508, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 03000000i
+    weight: 2
+    size: {x: 2.037303, y: 1.9208341, z: 3.103677}
+    center: {x: 0.00000047683716, y: 0.96041, z: 0.00000047683716}
+  - prefab: {fileID: 2994052298630347142, guid: 4ac156fcdba06ea488a73113afb434d1, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 03000000i
+    weight: 1
+    size: {x: 2.084208, y: 2.477261, z: 2.084208}
+    center: {x: 0, y: 1.2386305, z: 0}
+  - prefab: {fileID: 7427359447439824937, guid: a984102bd36d5fa4795c1a71bcba62d7, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 0300000002000000i
+    weight: 0.7
+    size: {x: 1.5380002, y: 2.86368, z: 1.5380002}
+    center: {x: 0, y: 1.43184, z: 0}
+  - prefab: {fileID: 6619158823249979067, guid: 0e41baea78e85ca489d8b23c3f530fa5, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 0000000003000000i
+    weight: 1
+    size: {x: 1.8, y: 1.05, z: 1.8}
+    center: {x: 0, y: 0.525, z: 0}
+  - prefab: {fileID: 6244876958809562935, guid: 484ab180c6f2bb243b96b262e8a3cf4b, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 00000000i
+    weight: 0.7
+    size: {x: 1.524, y: 1.397, z: 1.524}
+    center: {x: 0, y: 0.6985, z: 0}
+  - prefab: {fileID: 1785357232977054357, guid: b710724f4c700b54e9c1bed0c3b8e68d, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 00000000i
+    weight: 0.5
+    size: {x: 0.99901605, y: 1.5108275, z: 1.300854}
+    center: {x: 0.0000005364418, y: 0.7554102, z: 0.00000029802322}
+  - prefab: {fileID: 8089179370341595614, guid: 84c7e34b3a3baf040a5e74ac758b6f55, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 0000000001000000i
+    weight: 0.7
+    size: {x: 1.5954566, y: 0.79165107, z: 0.8080559}
+    center: {x: 0.00000011920929, y: 0.3958203, z: 0.00000014901161}
+  - prefab: {fileID: 5940372206139969658, guid: 370c1c8a44546bd43826a7c031276f59, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 0000000002000000i
+    weight: 0.8
+    size: {x: 1.5416958, y: 1.48375, z: 1.5416958}
+    center: {x: 0, y: 0.741875, z: 0}
+  - prefab: {fileID: 3002135727484147893, guid: 658f05209af4fbe49b1fc490b177bf1f, type: 3}
+    layer: 1
+    footprint: 2
+    roles: 0300000001000000i
+    weight: 1
+    size: {x: 2.453692, y: 1.171647, z: 1.0763158}
+    center: {x: 0, y: 0.5858235, z: 0}
+  - prefab: {fileID: 9069465061300136071, guid: 16560a30e69032f4ea3f6e8fa2bd92c5, type: 3}
+    layer: 1
+    footprint: 1
+    roles: 0200000000000000i
+    weight: 1
+    size: {x: 0.2778546, y: 1.2509, z: 0.2778546}
+    center: {x: 0, y: 0.62545, z: 0}
+  - prefab: {fileID: 5359734809678539106, guid: b9929ba718d516443b50a0d48993f539, type: 3}
+    layer: 1
+    footprint: 1
+    roles: 0300000000000000i
+    weight: 1
+    size: {x: 0.498436, y: 1.741674, z: 0.5240866}
+    center: {x: 0, y: 0.870837, z: 0}
+  - prefab: {fileID: 6650810586777018603, guid: ea27953960cf9944aa92a783fc0c0261, type: 3}
+    layer: 1
+    footprint: 1
+    roles: 0300000001000000i
+    weight: 1
+    size: {x: 0.8282506, y: 1.437231, z: 0.7877132}
+    center: {x: 0, y: 0.7186155, z: 0}
+  - prefab: {fileID: 3575835228172279448, guid: 75af955f0580df8428b73ef8733d7cc4, type: 3}
+    layer: 1
+    footprint: 1
+    roles: 0000000002000000i
+    weight: 1
+    size: {x: 1.05, y: 1.05, z: 1.8}
+    center: {x: 0, y: 0.525, z: 0}
+  - prefab: {fileID: 4757619932858624963, guid: d6aafd15839febb43be14b8e69b11daf, type: 3}
+    layer: 1
+    footprint: 1
+    roles: 0000000001000000i
+    weight: 1
+    size: {x: 0.7752469, y: 0.77524656, z: 0.7752468}
+    center: {x: 0.00000014901161, y: 0.3876172, z: 0.00000020861626}
+  - prefab: {fileID: 2718869388736688559, guid: 6d8ddb02201ffde4382977e64239cfe3, type: 3}
+    layer: 1
+    footprint: 1
+    roles: 03000000i
+    weight: 0.8
+    size: {x: 1.5380002, y: 1.51768, z: 1.5380002}
+    center: {x: 0, y: 0.75884, z: 0}
+  - prefab: {fileID: 2970924489674708647, guid: 4fb7f5ac39e43bd41a3c6b99dbbeba93, type: 3}
+    layer: 1
+    footprint: 1
+    roles: 000000000100000002000000i
+    weight: 1
+    size: {x: 1.05, y: 1.05, z: 1.05}
+    center: {x: 0, y: 0.525, z: 0}
+  <LowMaxHeight>k__BackingField: 0.45
+  <TallMaxHeight>k__BackingField: 3.2
+  <TallChanceByRole>k__BackingField:
+  - 0.7
+  - 0.5
+  - 0.95
+  - 0.9
