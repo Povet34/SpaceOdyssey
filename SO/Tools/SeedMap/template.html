@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>씨앗 지도</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#10141b;--panel:#171d27;--panel2:#1e2633;--line:#2b3545;--text:#dfe6ee;--dim:#8b98a9;--accent:#4fd0c8;
+  --err:#ff5d5d;--warn:#f2c14e;--ok:#5fd38a;--gold:#f5c542}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.55 "Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;display:grid;
+  grid-template:48px 1fr/290px 1fr 430px;grid-template-areas:"top top top" "left map right";overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+input[type=text]{background:#0d1118;border:1px solid var(--line);border-radius:6px;padding:5px 8px;width:100%}
+input[type=text]:focus{outline:1px solid var(--accent)}
+header{grid-area:top;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:16px;margin:0 6px 0 0;white-space:nowrap}
+header .count{color:var(--dim);white-space:nowrap;font-size:13px}
+header .count b.e{color:var(--err)} header .count b.w{color:var(--warn)}
+#search{width:240px}
+.sp{flex:1}
+#left{grid-area:left;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#right{grid-area:right;background:var(--panel);border-left:1px solid var(--line);overflow:auto;padding:14px 16px}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;border:0;border-radius:0;background:none;padding:9px 0;color:var(--dim);border-bottom:2px solid transparent}
+.tabs button.on{color:var(--text);border-bottom-color:var(--accent)}
+#leftbody{overflow:auto;padding:10px;flex:1}
+.grp{margin-bottom:14px}
+.grp h3{font-size:12px;color:var(--dim);margin:0 0 6px;font-weight:600;letter-spacing:.03em}
+.chk{display:flex;align-items:center;gap:8px;padding:3px 4px;border-radius:5px;cursor:pointer}
+.chk:hover{background:var(--panel2)}
+.chk .sw{width:11px;height:11px;border-radius:50%;flex:none}
+.chk .nm{flex:1}.chk .n{color:var(--dim);font-size:12px}
+.row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer}
+.row:hover,.row.on{background:var(--panel2)}
+.row .sw{width:11px;height:11px;border-radius:3px;flex:none}
+.row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .n{color:var(--dim);font-size:12px}
+.prob{padding:6px 8px;border-radius:6px;cursor:pointer;border-left:3px solid var(--warn);margin-bottom:5px;background:var(--panel2);font-size:12.5px}
+.prob.error{border-left-color:var(--err)}.prob.info{border-left-color:#566377}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+#mapwrap{grid-area:map;position:relative;overflow:hidden;background:radial-gradient(circle at 30% 20%,#151c28,#0c1016)}
+svg{width:100%;height:100%;display:block;cursor:grab;user-select:none;touch-action:none}
+svg.pan{cursor:grabbing}
+.edge{fill:none;stroke-linecap:round}
+.e-link{stroke:var(--accent);stroke-width:1.5;opacity:.55}
+.e-quest{stroke:#8b98a9;stroke-width:1.1;stroke-dasharray:4 4;opacity:.4}
+.e-means{stroke-width:1;opacity:.28}
+.hot-e{opacity:1!important;stroke-width:2.2}
+.dim .edge:not(.hot-e){opacity:.05!important}
+.dim .node:not(.hot){opacity:.14}
+.node{cursor:pointer}
+.node .shape{stroke-width:1.4}
+.node.sel .shape{stroke:#fff!important;stroke-width:3}
+.node.hit .halo{opacity:1}
+.halo{fill:none;stroke:#fff;stroke-width:2;opacity:0}
+.node text{fill:var(--text);pointer-events:none;paint-order:stroke;stroke:#0c1016;stroke-width:3px;stroke-linejoin:round;font-size:11px}
+.node.means text{font-size:12px;font-weight:600}
+.node.lbl-off text{display:none}
+.era-line{stroke:#34415a;stroke-width:1;stroke-dasharray:3 6}
+.era-lab{fill:#6b7a90;font-size:18px;font-weight:700}
+@media (max-width:1150px){body{grid-template:48px 1fr/220px 1fr 320px}}
+@media (max-width:820px){body{grid-template:48px 1fr 42vh/1fr;grid-template-areas:"top" "map" "right"}#left{display:none}#search{width:140px}#legend{display:none}}
+#legend{position:absolute;left:12px;bottom:12px;background:#171d27cc;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;max-width:260px;pointer-events:none}
+#legend div{display:flex;align-items:center;gap:6px;margin:2px 0}
+#legend i{display:inline-block;width:18px;height:0;border-top:2px solid}
+#legend span.d{width:10px;height:10px;border-radius:50%;display:inline-block}
+#zoomnote{position:absolute;right:12px;bottom:12px;color:var(--dim);font-size:12px;pointer-events:none}
+.chip{display:inline-block;border-radius:10px;padding:0 8px;font-size:12px;background:var(--panel2);border:1px solid var(--line);margin:0 4px 4px 0;cursor:default}
+.chip.c{cursor:pointer}.chip.c:hover{border-color:var(--accent)}
+.chip.st{border-color:#6a5a2c;color:#f2d98a}
+#right h2{margin:0 0 6px;font-size:20px;line-height:1.3}
+#right h4{margin:14px 0 4px;font-size:12px;color:var(--dim);font-weight:600;letter-spacing:.03em}
+#right p{margin:0 0 6px}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0}
+.card b.t{display:block;margin-bottom:3px}
+.card .res{color:#cfe8e6}
+a.ref{color:var(--accent);cursor:pointer;text-decoration:underline dotted}
+.small{font-size:12.5px;color:var(--dim)}
+.tone-나빠짐{color:#ef6b6b}.tone-잦아듦{color:#9aa3ad}.tone-좋아짐{color:#5fd38a}.tone-섞임{color:#e8b84a}
+.kv{display:grid;grid-template-columns:96px 1fr;gap:3px 10px;font-size:13px}
+.kv div:nth-child(odd){color:var(--dim)}
+.empty{color:var(--dim);padding:30px 6px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>씨앗 지도</h1>
+  <span class="count" id="count"></span>
+  <span class="sp"></span>
+  <input type="text" id="search" placeholder="제목, 수단, 사정 검색  ( / )">
+  <button id="btnFit">화면 맞춤</button>
+  <button id="btnRe">다시 배치</button>
+</header>
+<aside id="left">
+  <div class="tabs"><button data-t="view" class="on">보기</button><button data-t="means">수단</button><button data-t="prob">문제</button></div>
+  <div id="leftbody"></div>
+</aside>
+<main id="mapwrap">
+  <svg id="svg"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#4fd0c8"/></marker></defs>
+    <g id="vp"><g id="gG"></g><g id="gE"></g><g id="gN"></g></g></svg>
+  <div id="legend"></div>
+  <div id="zoomnote">휠: 확대·축소 · 끌기: 이동 · 노드 클릭: 연결만 밝게</div>
+</main>
+<aside id="right"><div class="empty">씨앗이나 수단을 누르면 여기에 내용이 뜬다.<br><br>둥근 점은 씨앗, 네모는 수단, 작은 마름모는 퀘스트라인이다.<br>씨앗 사이의 청록 화살표는 "엮임"(한쪽을 하고 나면 다른 쪽이 어떻게 달라지나)이다.</div></aside>
+
+<script>
+const DATA = /*__DATA__*/null;
+(function(){
+'use strict';
+const BCOL = ['#4fd0c8','#e8b84a','#ef6b6b','#b79cf0','#5fd38a','#6ea8ff','#f08fc0','#c9a36a'];
+const MCOL = {'추진':'#6ea8ff','제조':'#e8b84a','에너지':'#ef9a4a','감지':'#5fd38a','몸':'#f08fc0','일손':'#c9a36a','사이오닉':'#b79cf0','재료':'#9aa3ad','물건':'#e6c9a8','기르는 것':'#8fd18f','새 수단':'#4fd0c8','물체':'#a9b6c6','미정의':'#ff5d5d'};
+const STCOL = [['탑재','#ff9f43'],['배양','#5fd38a'],['연구','#6ea8ff'],['대체','#8b98a9'],['낡음','#ef6b6b'],['고장','#ef6b6b']];
+const ERA_W = 320, ROW_H = 150;
+const bundleKeys = Object.keys(DATA.bundles).sort();
+const bcolor = {}; bundleKeys.forEach((k,i)=>bcolor[k]=BCOL[i%BCOL.length]);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = s => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+function mk(tag, attrs, parent){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e; }
+
+// ---- 데이터 정리
+const nodes = {};
+DATA.seeds.forEach(s=>{ nodes[s.id]={id:s.id,type:'seed',label:s.title,bundle:s.bundle,d:s,x:0,y:0,has:false}; });
+DATA.quests.forEach(q=>{ nodes[q.id]={id:q.id,type:'quest',label:q.title,d:q,x:0,y:0,has:false}; });
+DATA.means.forEach(m=>{ nodes[m.id]={id:m.id,type:'means',label:m.name,d:m,x:0,y:0,has:false}; });
+const edges = DATA.edges.filter(e=>nodes[e.s]&&nodes[e.t]);
+const titleIdx = {}; DATA.seeds.forEach(s=>{(titleIdx[s.title]=titleIdx[s.title]||[]).push(s);});
+const allKinds = [...new Set(DATA.seeds.flatMap(s=>s.kinds))].sort();
+const lintBy = {}; DATA.lint.forEach(l=>{ if(l.id) (lintBy[l.id]=lintBy[l.id]||[]).push(l); });
+const kindsOrder = ['과학','신앙','사이오닉','초월','만남','유물'];
+allKinds.sort((a,b)=>{const x=kindsOrder.indexOf(a),y=kindsOrder.indexOf(b);return (x<0?9:x)-(y<0?9:y);});
+
+const S = {bundles:new Set(bundleKeys), kinds:new Set(allKinds), eras:new Set(DATA.eras.concat(['전시기'])),
+  links:true, quests:true, means:'big', pinned:new Set(), layout:'time', sel:null, hover:null, search:'', tab:'view', k:1,tx:0,ty:0};
+let vis = {nodes:[],edges:[]}, els = {n:{},e:[]}, adj = {};
+
+function seedVisible(s){
+  if(!S.bundles.has(s.bundle)) return false;
+  if(s.kinds.length && !s.kinds.some(k=>S.kinds.has(k))) return false;
+  if(s.eras.length && !s.eras.some(e=>S.eras.has(e))) return false;
+  return true;
+}
+function computeVisible(){
+  const seedOk = new Set(DATA.seeds.filter(seedVisible).map(s=>s.id));
+  const keep = new Set(seedOk);
+  const conn = {};
+  edges.forEach(e=>{
+    const a=nodes[e.s], b=nodes[e.t];
+    if(a.type==='seed' && seedOk.has(e.s)){ (conn[e.t]=conn[e.t]||new Set()).add(e.s); }
+  });
+  Object.keys(nodes).forEach(id=>{
+    const n=nodes[id];
+    if(n.type==='quest'){ if(S.quests && conn[id] && conn[id].size) keep.add(id); }
+    else if(n.type==='means'){
+      const show = S.pinned.has(id) || (S.means==='all') || (S.means==='big' && n.d.big);
+      if(show && conn[id] && conn[id].size) keep.add(id);
+    }
+  });
+  const ve = edges.filter(e=>{
+    if(!keep.has(e.s)||!keep.has(e.t)) return false;
+    if(e.kind==='link') return S.links;
+    if(e.kind==='quest') return S.quests;
+    return true;
+  });
+  vis.nodes = [...keep].map(id=>nodes[id]);
+  vis.edges = ve;
+  adj = {}; ve.forEach(e=>{(adj[e.s]=adj[e.s]||new Set()).add(e.t);(adj[e.t]=adj[e.t]||new Set()).add(e.s);});
+  vis.nodes.forEach(n=>{ n.deg=(adj[n.id]?adj[n.id].size:0); });
+}
+
+// ---- 배치
+function rng(seed){ let a=seed>>>0; return function(){ a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296; }; }
+function bundleRow(b){ return bundleKeys.indexOf(b); }
+function targetX(n){ return n.type==='seed'? n.d.x*ERA_W : null; }
+function simulate(iters,a0){
+  const R = rng(7);
+  vis.nodes.forEach(n=>{ if(!n.has){ n.has=true;
+    if(n.type==='seed'){ n.x=n.d.x*ERA_W+(R()-.5)*200; n.y=bundleRow(n.bundle)*ROW_H+(R()-.5)*160; }
+    else { n.x=(R()-.5)*1400+900; n.y=(R()-.5)*900+500; } n.vx=0;n.vy=0; }});
+  const N=vis.nodes, idx={}; N.forEach((n,i)=>idx[n.id]=i);
+  const E=vis.edges.map(e=>({a:idx[e.s],b:idx[e.t],kind:e.kind}));
+  for(let it=0;it<iters;it++){
+    const alpha=Math.max(.04,a0*(1-it/iters));
+    for(let i=0;i<N.length;i++){ N[i].fx=0; N[i].fy=0; }
+    for(let i=0;i<N.length;i++){ const a=N[i];
+      for(let j=i+1;j<N.length;j++){ const b=N[j];
+        let dx=a.x-b.x, dy=a.y-b.y, d2=dx*dx+dy*dy;
+        if(d2>90000) continue; if(d2<1){dx=(R()-.5);dy=(R()-.5);d2=1;}
+        const d=Math.sqrt(d2);
+        const mean = (a.type==='means'||b.type==='means');
+        const f=(mean?5200:2600)/d2, ux=dx/d, uy=dy/d;
+        a.fx+=ux*f;a.fy+=uy*f;b.fx-=ux*f;b.fy-=uy*f; }}
+    E.forEach(e=>{ const a=N[e.a], b=N[e.b]; let dx=b.x-a.x, dy=b.y-a.y; const d=Math.sqrt(dx*dx+dy*dy)||1;
+      const rest = e.kind==='link'?80:(e.kind==='quest'?110:140), k = e.kind==='link'?.06:(e.kind==='quest'?.03:.012);
+      const f=(d-rest)*k, ux=dx/d, uy=dy/d; a.fx+=ux*f;a.fy+=uy*f;b.fx-=ux*f;b.fy-=uy*f; });
+    N.forEach(n=>{
+      if(S.layout==='time'){ const tx=targetX(n); if(tx!=null) n.fx+=(tx-n.x)*.035; else n.fx+=(1000-n.x)*.0015; n.fy+=(380-n.y)*.0016; }
+      else if(S.layout==='bundle'){ if(n.type==='seed') n.fy+=(bundleRow(n.bundle)*ROW_H*1.2-n.y)*.04; n.fx+=(900-n.x)*.0016; if(n.type!=='seed') n.fy+=(380-n.y)*.001; }
+      else { n.fx+=(900-n.x)*.0025; n.fy+=(420-n.y)*.0025; }
+      n.vx=(n.vx+n.fx*alpha)*.82; n.vy=(n.vy+n.fy*alpha)*.82;
+      const sp=Math.hypot(n.vx,n.vy); if(sp>30){n.vx*=30/sp;n.vy*=30/sp;}
+      if(!n.fixed){ n.x+=n.vx; n.y+=n.vy; } });
+  }
+}
+
+// ---- 그리기
+function nodeR(n){ if(n.type==='seed') return 5+Math.sqrt(n.deg||0)*1.5; if(n.type==='means') return 11+Math.sqrt(n.d.uses||0)*2.4; return 5; }
+function edgeColor(e){
+  if(e.kind==='link') return null; if(e.kind==='quest') return null;
+  const st=(e.states||[]).join(' ');
+  for(const [k,c] of STCOL) if(st.includes(k)) return c;
+  return st? '#b79cf0' : '#566377';
+}
+function render(){
+  const gE=$('#gE'), gN=$('#gN'), gG=$('#gG');
+  gE.textContent=''; gN.textContent=''; gG.textContent='';
+  els={n:{},e:[]};
+  vis.edges.forEach(e=>{
+    const cls='edge e-'+e.kind;
+    const p=mk('path',{class:cls},gE);
+    const c=edgeColor(e); if(c) p.style.stroke=c;
+    if(e.kind==='link') p.setAttribute('marker-end','url(#arr)');
+    const t=mk('title',{},p); t.textContent = e.kind==='means' ? ((e.states.join(', ')||'가동')+' — '+(e.paths||[]).join(' / ')) : (e.label||'');
+    els.e.push({e,p});
+  });
+  vis.nodes.forEach(n=>{
+    const g=mk('g',{class:'node '+n.type},gN); g.dataset.id=n.id;
+    const r=nodeR(n); n.r=r;
+    mk('circle',{class:'halo',r:r+7},g);
+    let shape;
+    if(n.type==='seed'){ shape=mk('circle',{class:'shape',r:r,fill:bcolor[n.bundle]+'cc',stroke:bcolor[n.bundle]},g); }
+    else if(n.type==='means'){ const col=MCOL[n.d.cat]||'#a9b6c6';
+      shape=mk('rect',{class:'shape',x:-r*1.5,y:-r*.7,width:r*3,height:r*1.4,rx:6,fill:'#1a212d',stroke:n.d.big?'#f5c542':col},g);
+      if(n.d.big) shape.setAttribute('stroke-width','2.6'); }
+    else { shape=mk('path',{class:'shape',d:'M0,-6 L6,0 L0,6 L-6,0 Z',fill:'#10141b',stroke:'#8b98a9'},g); }
+    const tx=mk('text',{x:n.type==='means'?0:r+4,y:n.type==='means'?4:4,'text-anchor':n.type==='means'?'middle':'start'},g);
+    tx.textContent=n.label;
+    g.addEventListener('pointerdown',ev=>startDrag(ev,n));
+    g.addEventListener('mouseenter',()=>{S.hover=n.id;applyHighlight();});
+    g.addEventListener('mouseleave',()=>{S.hover=null;applyHighlight();});
+    els.n[n.id]=g;
+  });
+  if(S.layout==='time'){
+    DATA.eras.forEach((e,i)=>{ mk('line',{class:'era-line',x1:i*ERA_W,x2:i*ERA_W,y1:-200,y2:1400},gG);
+      const t=mk('text',{class:'era-lab',x:i*ERA_W+8,y:-170},gG); t.textContent=e; });
+  } else if(S.layout==='bundle'){
+    bundleKeys.forEach((b,i)=>{ const t=mk('text',{class:'era-lab',x:-190,y:i*ROW_H*1.2+4,fill:bcolor[b]},gG); t.textContent=b+' '+DATA.bundles[b]; t.style.fill=bcolor[b]; t.style.opacity='.75'; });
+  }
+  positions(); applyHighlight(); updateCount();
+}
+function positions(){
+  vis.nodes.forEach(n=>{ const g=els.n[n.id]; if(g) g.setAttribute('transform','translate('+n.x.toFixed(1)+','+n.y.toFixed(1)+')'); });
+  els.e.forEach(({e,p})=>{ const a=nodes[e.s], b=nodes[e.t];
+    let x1=a.x,y1=a.y,x2=b.x,y2=b.y;
+    if(e.kind==='link'||e.kind==='quest'){ const dx=x2-x1,dy=y2-y1,d=Math.hypot(dx,dy)||1; x2-=dx/d*((b.r||5)+3); y2-=dy/d*((b.r||5)+3); x1+=dx/d*((a.r||5)); y1+=dy/d*((a.r||5)); }
+    p.setAttribute('d','M'+x1.toFixed(1)+','+y1.toFixed(1)+' L'+x2.toFixed(1)+','+y2.toFixed(1)); });
+}
+function matches(n){
+  const q=S.search.trim().toLowerCase(); if(!q) return false;
+  if(n.label.toLowerCase().includes(q)) return true;
+  if(n.type==='seed'){ if(n.d.summary.toLowerCase().includes(q)) return true;
+    return n.d.paths.some(p=>p.means.some(m=>m.name.toLowerCase().includes(q))||p.name.toLowerCase().includes(q)); }
+  return false;
+}
+function applyHighlight(){
+  const svg=$('#svg'); const focus=S.hover||S.sel;
+  const hotN=new Set(), hotE=new Set();
+  const search=S.search.trim();
+  if(focus && nodes[focus] && els.n[focus]){ hotN.add(focus); (adj[focus]||new Set()).forEach(x=>hotN.add(x)); }
+  svg.classList.toggle('dim', !!(focus && els.n[focus]) );
+  vis.nodes.forEach(n=>{ const g=els.n[n.id]; if(!g) return;
+    g.classList.toggle('hot',hotN.has(n.id)); g.classList.toggle('sel',n.id===S.sel);
+    g.classList.toggle('hit',!!search && matches(n));
+    if(hotN.has(n.id)||(search&&matches(n))) g.classList.remove('lbl-off');
+  });
+  els.e.forEach(({e,p})=>{ p.classList.toggle('hot-e', !!focus && (e.s===focus||e.t===focus)); });
+  updateLabels();
+}
+function updateLabels(){
+  const z=S.k, hubs=new Set(vis.nodes.slice().sort((a,b)=>b.deg-a.deg).slice(0,36).map(n=>n.id));
+  const focus=S.hover||S.sel; const nb=new Set(); if(focus){nb.add(focus);(adj[focus]||new Set()).forEach(x=>nb.add(x));}
+  const search=S.search.trim();
+  vis.nodes.forEach(n=>{ const g=els.n[n.id]; if(!g||n.type==='means') return;
+    const on = z>1.5 || hubs.has(n.id) || nb.has(n.id) || (search && matches(n)) || n.id===S.sel;
+    g.classList.toggle('lbl-off',!on); });
+}
+function updateCount(){
+  const sc=vis.nodes.filter(n=>n.type==='seed').length, mc=vis.nodes.filter(n=>n.type==='means').length;
+  const qc=vis.nodes.filter(n=>n.type==='quest').length;
+  const L=DATA.lint, e=L.filter(x=>x.level==='error').length, w=L.filter(x=>x.level==='warn').length;
+  $('#count').innerHTML='씨앗 '+sc+'/'+DATA.seeds.length+' · 수단 '+mc+' · 퀘스트라인 '+qc+' · 연결 '+vis.edges.length+' · 오류 <b class="e">'+e+'</b> 주의 <b class="w">'+w+'</b>';
+}
+
+// ---- 이동·확대
+function applyView(){ $('#vp').setAttribute('transform','translate('+S.tx+','+S.ty+') scale('+S.k+')'); }
+function fit(){
+  if(!vis.nodes.length) return;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; vis.nodes.forEach(n=>{x0=Math.min(x0,n.x);x1=Math.max(x1,n.x);y0=Math.min(y0,n.y);y1=Math.max(y1,n.y);});
+  const w=$('#svg').clientWidth,h=$('#svg').clientHeight, pad=Math.min(60,w/8,h/8);
+  const k=Math.max(.05,Math.min((w-pad*2)/Math.max(1,x1-x0),(h-pad*2)/Math.max(1,y1-y0),2.2));
+  S.k=k; S.tx=pad-x0*k+((w-pad*2)-(x1-x0)*k)/2; S.ty=pad-y0*k+((h-pad*2)-(y1-y0)*k)/2; applyView(); updateLabels();
+}
+function centerOn(id){ const n=nodes[id]; if(!n||!n.has) return; const w=$('#svg').clientWidth,h=$('#svg').clientHeight; S.k=Math.max(S.k,1.2); S.tx=w/2-n.x*S.k; S.ty=h/2-n.y*S.k; applyView(); updateLabels(); }
+let drag=null;
+function startDrag(ev,n){ ev.stopPropagation(); drag={n,moved:false,sx:ev.clientX,sy:ev.clientY}; $('#svg').setPointerCapture(ev.pointerId); }
+$('#svg').addEventListener('pointerdown',ev=>{ if(drag) return; drag={pan:true,sx:ev.clientX,sy:ev.clientY,tx:S.tx,ty:S.ty,moved:false}; $('#svg').classList.add('pan'); $('#svg').setPointerCapture(ev.pointerId); });
+$('#svg').addEventListener('pointermove',ev=>{
+  if(!drag) return; const dx=ev.clientX-drag.sx, dy=ev.clientY-drag.sy; if(Math.hypot(dx,dy)>3) drag.moved=true;
+  if(drag.pan){ S.tx=drag.tx+dx; S.ty=drag.ty+dy; applyView(); }
+  else if(drag.moved){ drag.n.x+=(ev.clientX-(drag.lx??drag.sx))/S.k; drag.n.y+=(ev.clientY-(drag.ly??drag.sy))/S.k; drag.n.fixed=true; positions(); }
+  drag.lx=ev.clientX; drag.ly=ev.clientY; });
+$('#svg').addEventListener('pointerup',ev=>{
+  if(!drag) return; const d=drag; drag=null; $('#svg').classList.remove('pan');
+  if(d.pan){ if(!d.moved) select(null); } else if(!d.moved){ select(d.n.id); } });
+$('#svg').addEventListener('pointercancel',()=>{ drag=null; $('#svg').classList.remove('pan'); });
+$('#svg').addEventListener('wheel',ev=>{ ev.preventDefault(); const r=$('#svg').getBoundingClientRect(); const mx=ev.clientX-r.left,my=ev.clientY-r.top;
+  const f=Math.exp(-ev.deltaY*0.0015), nk=Math.min(6,Math.max(.05,S.k*f)); S.tx=mx-(mx-S.tx)*(nk/S.k); S.ty=my-(my-S.ty)*(nk/S.k); S.k=nk; applyView(); updateLabels(); },{passive:false});
+
+// ---- 선택과 상세
+function ensureVisible(id){
+  const n=nodes[id]; if(!n) return;
+  let ch=false;
+  const add=(set,v)=>{ if(!set.has(v)){ set.add(v); ch=true; } };
+  if(n.type==='seed'){ add(S.bundles,n.bundle); n.d.kinds.forEach(k=>add(S.kinds,k)); n.d.eras.forEach(e=>add(S.eras,e)); }
+  if(n.type==='means'){ add(S.pinned,id); }
+  if(n.type==='quest'){ if(!S.quests){ S.quests=true; ch=true; } }
+  if(ch && S.tab==='view') renderLeft();
+}
+function select(id,center){
+  S.sel=id;
+  if(id){ ensureVisible(id); if(!nodes[id].has || !els.n[id]){ rebuild(false,true); } }
+  applyHighlight(); renderDetail();
+  if(center&&id) centerOn(id);
+}
+function plainRef(s){
+  return esc(s).replace(/\((\d{3})\)/g,(a,num)=>{ const q=DATA.quests.filter(x=>x.num===num)[0]; return q?'(<a class="ref" data-id="'+q.id+'">'+num+'</a>)':a; });
+}
+function linkify(text, bundle){
+  const parts=[]; let last=0; const re=/"([^"]{2,30})"/g; let m;
+  while((m=re.exec(text))){ parts.push(plainRef(text.slice(last,m.index)));
+    const c=titleIdx[m[1]]; let tgt=null;
+    if(c) tgt=(c.filter(x=>x.bundle===bundle)[0])||c[0];
+    const q=DATA.quests.filter(x=>x.title===m[1])[0];
+    if(tgt) parts.push('<a class="ref" data-id="'+tgt.id+'">“'+esc(m[1])+'”</a>');
+    else if(q) parts.push('<a class="ref" data-id="'+q.id+'">“'+esc(m[1])+'”</a>');
+    else parts.push('“'+esc(m[1])+'”');
+    last=m.index+m[0].length; }
+  parts.push(plainRef(text.slice(last)));
+  return parts.join('');
+}
+function pathHtml(p){
+  const chips=p.means.map(m=>'<span class="chip c" data-id="m:'+esc(m.name)+'">'+esc(m.name)+(m.state?' · '+esc(m.state):'')+'</span>').join('');
+  let t=esc(p.text).replace(/ → /g,'<br><span class="res">→ </span>').replace(/(남는 것:)/g,'<b>$1</b>');
+  return '<div class="card"><b class="t">'+esc(p.name)+'</b><div>'+chips+'</div><div class="small" style="color:#cdd6e1">'+t+'</div></div>';
+}
+function renderDetail(){
+  const R=$('#right'); const id=S.sel; R.scrollTop=0;
+  if(!id||!nodes[id]){ R.innerHTML='<div class="empty">씨앗이나 수단을 누르면 여기에 내용이 뜬다.</div>'; return; }
+  const n=nodes[id], d=n.d; let h='';
+  if(!els.n[id]) h+='<div class="small" style="color:var(--warn);margin-bottom:6px">지금 필터에 가려져 지도에는 안 보인다. 왼쪽 필터를 켜면 보인다.</div>';
+  if(n.type==='seed'){
+    const out=edges.filter(e=>e.s===id&&e.kind!=='means'), inn=edges.filter(e=>e.t===id&&e.kind==='link');
+    h+='<h2>'+esc(d.title)+'</h2>';
+    h+='<span class="chip" style="border-color:'+bcolor[d.bundle]+'">'+esc(d.bundle)+' '+esc(DATA.bundles[d.bundle])+'</span>';
+    h+=d.kinds.map(k=>'<span class="chip">결 '+esc(k)+'</span>').join('')+d.targets.map(k=>'<span class="chip">'+esc(k)+'</span>').join('');
+    h+='<div class="small">시기 '+esc(d.eras_raw)+' · <span class="tone-'+esc(d.tone)+'">방치: '+esc(d.tone||'?')+'</span></div>';
+    h+='<div class="small">'+esc(d.file)+' · '+esc(d.section)+'</div>';
+    h+='<h4>사정</h4><p>'+esc(d.summary)+'</p>';
+    ['징후','걸림돌'].forEach(k=>{ if(d.raw[k]) h+='<h4>'+k+'</h4><p>'+esc(d.raw[k])+'</p>'; });
+    h+='<h4>푸는 길 '+d.paths.length+'개</h4>'+d.paths.map(pathHtml).join('');
+    if(d.raw['맨손']) h+='<h4>맨손</h4><p>'+esc(d.raw['맨손'])+'</p>';
+    if(d.raw['방치']) h+='<h4>방치</h4><p>'+esc(d.raw['방치'])+'</p>';
+    if(d.raw['물체']) h+='<h4>물체</h4><p>'+esc(d.raw['물체'])+'</p>';
+    if(d.raw['엮임']) h+='<h4>엮임</h4><p>'+linkify(d.raw['엮임'],d.bundle)+'</p>';
+    if(d.raw['뿌리']) h+='<h4>뿌리</h4><p class="small">'+esc(d.raw['뿌리'])+'</p>';
+    h+='<h4>연결 (이 씨앗이 가리킴 '+out.length+' · 가리켜 오는 것 '+inn.length+')</h4>';
+    out.forEach(e=>{ const t=nodes[e.t]; h+='<div class="row" data-id="'+t.id+'"><span class="nm">→ '+esc(t.label)+'</span><span class="n">'+(t.type==='quest'?'퀘스트라인':t.bundle)+'</span></div>'; });
+    inn.forEach(e=>{ const t=nodes[e.s]; h+='<div class="row" data-id="'+t.id+'"><span class="nm">← '+esc(t.label)+'</span><span class="n">'+t.bundle+'</span></div>'; });
+    if(!out.length&&!inn.length) h+='<div class="small">이어진 곳이 없다.</div>';
+    if(d.suggest&&d.suggest.length){ h+='<h4>엮임 보강 후보 (같은 드문 수단을 쓰는데 아직 안 이어짐)</h4>';
+      d.suggest.forEach(sg=>{ const t=nodes[sg.id]; h+='<div class="row" data-id="'+t.id+'"><span class="nm">'+esc(t.label)+'</span><span class="n">'+esc(sg.shared.join(', '))+'</span></div>'; }); }
+    const ls=lintBy[id]||[]; if(ls.length){ h+='<h4>이 씨앗의 문제</h4>'+ls.map(l=>'<div class="prob '+l.level+'">'+esc(l.msg)+'</div>').join(''); }
+  } else if(n.type==='means'){
+    h+='<h2>'+esc(d.name)+(d.big?' ★':'')+'</h2><span class="chip">'+esc(d.cat)+'</span>'+(d.known?'':'<span class="chip" style="border-color:#ff5d5d">목록에 정의 없음</span>')+'<span class="chip">씨앗 '+d.uses+'곳</span>';
+    const keys=Object.keys(d.cells||{}).filter(k=>k!=='이름'&&d.cells[k]&&d.cells[k]!=='-');
+    if(keys.length){ h+='<h4>수단 목록의 설명</h4><div class="kv">'+keys.map(k=>'<div>'+esc(k)+'</div><div>'+esc(String(d.cells[k]).replace(/\*\*/g,''))+'</div>').join('')+'</div>'; }
+    const by={}; edges.filter(e=>e.t===id).forEach(e=>{ const key=(e.states.join(', ')||'가동'); (by[key]=by[key]||[]).push(e); });
+    h+='<h4>이 수단이 쓰인 씨앗 (상태별)</h4>';
+    Object.keys(by).sort((a,b)=>by[b].length-by[a].length).forEach(k=>{ h+='<div class="small" style="margin-top:8px"><b>'+esc(k)+'</b> · '+by[k].length+'</div>';
+      by[k].forEach(e=>{ const s=nodes[e.s]; h+='<div class="row" data-id="'+s.id+'"><span class="sw" style="background:'+bcolor[s.bundle]+';border-radius:50%"></span><span class="nm">'+esc(s.label)+'</span><span class="n">'+esc((e.paths||[]).slice(0,1).join(''))+'</span></div>'; }); });
+  } else {
+    h+='<h2>'+esc(d.num)+'. '+esc(d.title)+'</h2><span class="chip">퀘스트라인</span><div class="small">'+esc(d.cond)+'</div><div class="small">'+esc(d.file)+'</div>';
+    h+='<h4>단계</h4>'+d.steps.map(s=>'<div class="card small" style="color:#cdd6e1">'+esc(s)+'</div>').join('');
+    const refs=edges.filter(e=>e.t===id); h+='<h4>이 퀘스트라인을 가리키는 씨앗 '+refs.length+'</h4>';
+    refs.forEach(e=>{ const s=nodes[e.s]; h+='<div class="row" data-id="'+s.id+'"><span class="nm">'+esc(s.label)+'</span><span class="n">'+s.bundle+'</span></div>'; });
+  }
+  R.innerHTML=h;
+}
+$('#right').addEventListener('click',ev=>{ const t=ev.target.closest('[data-id]'); if(t){ select(t.dataset.id,true); } });
+
+// ---- 왼쪽 패널
+function renderLeft(){
+  const L=$('#leftbody'); let h='';
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===S.tab));
+  if(S.tab==='view'){
+    h+='<div class="grp"><h3>묶음</h3>'+bundleKeys.map(b=>{ const c=DATA.seeds.filter(s=>s.bundle===b).length;
+      return '<label class="chk"><input type="checkbox" data-b="'+b+'" '+(S.bundles.has(b)?'checked':'')+'><span class="sw" style="background:'+bcolor[b]+'"></span><span class="nm">'+b+' '+esc(DATA.bundles[b])+'</span><span class="n">'+c+'</span></label>'; }).join('')+'</div>';
+    h+='<div class="grp"><h3>결</h3>'+allKinds.map(k=>'<label class="chk"><input type="checkbox" data-k="'+esc(k)+'" '+(S.kinds.has(k)?'checked':'')+'><span class="nm">'+esc(k)+'</span></label>').join('')+'</div>';
+    h+='<div class="grp"><h3>시기</h3>'+DATA.eras.concat(['전시기']).map(k=>'<label class="chk"><input type="checkbox" data-e="'+k+'" '+(S.eras.has(k)?'checked':'')+'><span class="nm">'+k+'</span></label>').join('')+'</div>';
+    h+='<div class="grp"><h3>선</h3><label class="chk"><input type="checkbox" id="optLinks" '+(S.links?'checked':'')+'><span class="nm">엮임 (씨앗 → 씨앗)</span></label>'
+      +'<label class="chk"><input type="checkbox" id="optQuests" '+(S.quests?'checked':'')+'><span class="nm">퀘스트라인 '+DATA.quests.length+'개와의 연결</span></label></div>';
+    h+='<div class="grp"><h3>수단 표시</h3>'+[['none','안 보임'],['big','큰 테크 6종'],['all','전체']].map(([v,t])=>'<label class="chk"><input type="radio" name="mm" data-m="'+v+'" '+(S.means===v?'checked':'')+'><span class="nm">'+t+'</span></label>').join('')+'<div class="small">수단을 고르면 그 수단만 따로 나타난다.</div></div>';
+    h+='<div class="grp"><h3>배치</h3>'+[['time','시간순 (가로가 시기)'],['bundle','묶음별 (세로가 묶음)'],['free','자유']].map(([v,t])=>'<label class="chk"><input type="radio" name="lay" data-l="'+v+'" '+(S.layout===v?'checked':'')+'><span class="nm">'+t+'</span></label>').join('')+'</div>';
+    h+='<div class="btns"><button id="bAll">모두 켜기</button><button id="bClearPins">고른 수단 지우기</button></div>';
+  } else if(S.tab==='means'){
+    h+='<input type="text" id="mq" placeholder="수단 이름 찾기" value="'+esc(S.mq||'')+'"><div style="height:8px"></div><div id="mlist"></div>';
+  } else {
+    const grp={error:[],warn:[],info:[]}; DATA.lint.forEach(l=>grp[l.level].push(l));
+    const one=(l)=>'<div class="prob '+l.level+'" '+(l.id?'data-pid="'+l.id+'"':'')+'>'+esc(l.msg)+'</div>';
+    h+='<h3 style="font-size:13px">오류 '+grp.error.length+'</h3>'+(grp.error.map(one).join('')||'<div class="small">없음</div>');
+    h+='<h3 style="font-size:13px;margin-top:14px">주의 '+grp.warn.length+'</h3>'+(grp.warn.map(one).join('')||'<div class="small">없음</div>');
+    h+='<details style="margin-top:14px"><summary class="small">참고 '+grp.info.length+'개 (엮임이 없거나 제목이 안 맞는 곳 등)</summary>'+grp.info.map(one).join('')+'</details>';
+  }
+  L.innerHTML=h;
+  if(S.tab==='means') renderMeansList();
+}
+function renderMeansList(){
+  const q=(S.mq||'').toLowerCase(); let h='';
+  DATA.means.slice().sort((a,b)=>b.uses-a.uses).filter(m=>!q||m.name.toLowerCase().includes(q)).forEach(m=>{
+    h+='<div class="row'+(S.sel===m.id?' on':'')+'" data-mid="'+esc(m.id)+'"><span class="sw" style="background:'+(MCOL[m.cat]||'#a9b6c6')+(m.big?';outline:2px solid #f5c542':'')+'"></span><span class="nm">'+esc(m.name)+'</span><span class="n">'+m.uses+'</span></div>'; });
+  $('#mlist').innerHTML=h;
+}
+$('#leftbody').addEventListener('change',ev=>{
+  const t=ev.target; let re=true;
+  if(t.dataset.b){ t.checked?S.bundles.add(t.dataset.b):S.bundles.delete(t.dataset.b); }
+  else if(t.dataset.k){ t.checked?S.kinds.add(t.dataset.k):S.kinds.delete(t.dataset.k); }
+  else if(t.dataset.e){ t.checked?S.eras.add(t.dataset.e):S.eras.delete(t.dataset.e); }
+  else if(t.id==='optLinks') S.links=t.checked; else if(t.id==='optQuests') S.quests=t.checked;
+  else if(t.dataset.m){ S.means=t.dataset.m; }
+  else if(t.dataset.l){ S.layout=t.dataset.l; rebuild(true); return; }
+  else re=false;
+  if(re) rebuild(false);
+});
+$('#leftbody').addEventListener('click',ev=>{
+  const t=ev.target;
+  if(t.id==='bAll'){ S.bundles=new Set(bundleKeys); S.kinds=new Set(allKinds); S.eras=new Set(DATA.eras.concat(['전시기'])); S.links=true; S.quests=true; renderLeft(); rebuild(false); return; }
+  if(t.id==='bClearPins'){ S.pinned=new Set(); rebuild(false); return; }
+  const r=t.closest('[data-mid]'); if(r){ select(r.dataset.mid,true); renderMeansList(); return; }
+  const p=t.closest('[data-pid]'); if(p){ select(p.dataset.pid,true); }
+});
+$('#leftbody').addEventListener('input',ev=>{ if(ev.target.id==='mq'){ S.mq=ev.target.value; renderMeansList(); } });
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{ S.tab=b.dataset.t; renderLeft(); }));
+
+function rebuild(relayout,keepSel){
+  if(relayout) vis.nodes.forEach(n=>{ n.has=false; n.fixed=false; });
+  computeVisible(); if(relayout) simulate(340,1); else simulate(160,.3); render();
+  if(relayout) fit();
+  if(S.sel && !els.n[S.sel] && !keepSel) { S.sel=null; renderDetail(); }
+  updateLegend();
+}
+function updateLegend(){
+  let h=bundleKeys.map(b=>'<div><span class="d" style="background:'+bcolor[b]+'"></span>'+b+' '+esc(DATA.bundles[b])+'</div>').join('');
+  h+='<div><i style="border-color:#4fd0c8"></i>엮임 (한쪽이 다른 쪽을 바꿈)</div><div><i style="border-color:#8b98a9;border-top-style:dashed"></i>퀘스트라인</div>'
+   +'<div><i style="border-color:#ff9f43"></i>탑재 중 <i style="border-color:#5fd38a"></i>배양 중 <i style="border-color:#6ea8ff"></i>연구</div>'
+   +'<div><i style="border-color:#8b98a9"></i>대체됨 <i style="border-color:#ef6b6b"></i>낡음·고장 <i style="border-color:#b79cf0"></i>내력</div>'
+   +'<div><span style="display:inline-block;width:16px;height:9px;border:2px solid #f5c542;border-radius:3px"></span>큰 테크 6종</div>';
+  $('#legend').innerHTML=h;
+}
+$('#search').addEventListener('input',ev=>{ S.search=ev.target.value; applyHighlight(); });
+$('#search').addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ const m=vis.nodes.filter(matches)[0]; if(m) select(m.id,true); } if(ev.key==='Escape'){ ev.target.value=''; S.search=''; applyHighlight(); ev.target.blur(); } });
+document.addEventListener('keydown',ev=>{ if(ev.key==='/' && document.activeElement.tagName!=='INPUT'){ ev.preventDefault(); $('#search').focus(); } });
+$('#btnFit').addEventListener('click',fit);
+$('#btnRe').addEventListener('click',()=>rebuild(true));
+
+renderLeft(); rebuild(true);
+window.SEEDMAP={S:S,vis:()=>vis,fit:fit,rebuild:rebuild,select:select,nodes:nodes};
+})();
+</script>
+</body>
+</html>
