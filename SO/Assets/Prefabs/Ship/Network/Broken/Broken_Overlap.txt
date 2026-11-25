@@ -1,0 +1,8 @@
+; 일부러 깨뜨린 확인용 프리셋: hold2를 2칸 왼쪽으로 밀어 hold1과 겹침. 평소 씬은 이것을 가리키지 않음.
+; 확인 방법: 씬 미리보기의 Preset을 이 파일로 바꾸고 Play(Templates는 그대로). 평소 씬은 이것을 가리키지 않음.
+segment engine Seg_Engine 0 3
+segment spiky Seg_Spiky 16 0
+segment hold1 Seg_Hold 32 2
+segment hold2 Seg_Hold 42 2
+segment bow Seg_Bow 56 4
+start 9 13

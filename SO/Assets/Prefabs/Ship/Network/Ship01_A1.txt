@@ -1,0 +1,11 @@
+; 통로 그물 A1 첫 배 프리셋. 계획서 Docs/ShipLayoutNetworkPlan.md 2.6절, 11절 A1.
+; segment <식별자> <형판이름> <x> <z> : 형판 격자 (0,0) 칸(맨 아래 줄 첫 글자)이 놓일 배 좌표
+; start <x> <z> : 시작 칸(배 좌표, 통로 칸)
+; 모듈 줄은 A2에서 채움. ; 로 시작하는 줄은 주석.
+; 접합부: engine+spiky = 루프가 걸친 곳(통로 두 줄), hold1+hold2 = 같은 형판 두 번 + 방칸↔방칸 4칸.
+segment engine Seg_Engine 0 3
+segment spiky Seg_Spiky 16 0
+segment hold1 Seg_Hold 32 2
+segment hold2 Seg_Hold 44 2
+segment bow Seg_Bow 56 4
+start 9 13
