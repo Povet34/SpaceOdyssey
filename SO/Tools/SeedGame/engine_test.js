@@ -277,28 +277,46 @@ test('맨손: 능력 검토 뒤에만, 선택지에는 라벨만 있고 맨손 �
   assert.deepStrictEqual([E.publicView(st, c).outcome.title, E.publicView(st, c).outcome.result], ['맨손으로 버틴다', 'BARE표지']);
   assert.ok(texts(st).includes('맨손: BARE표지'));
 });
-test('길이 공개되기 전에 닫으면 놓침(못 알아봄): 일지에 사정이 없고 방치 결 낱말만, 사정은 작성자 줄에만', function () {
+// 방치는 당할 때까지 알려주지 않는다(사용자 원칙): 닫혀도 플레이 뷰와 일지에는 고정 문구뿐이고 원문과 결 낱말은 작성자 쪽에만 있다.
+function assertNeglectHidden(c, st, status) {
+  assert.strictEqual(st.status, status);
+  const pub = texts(st).join('\n');
+  const view = E.publicView(st, c);
+  absent(pub + JSON.stringify(view), ['IGNORE표지', '나빠짐', 'SAJEONG표지']);
+  assert.ok(pub.includes(E.NEGLECT_TEXT), '일지에 고정 문구가 없음');
+  assert.strictEqual(view.outcome.result.includes(E.NEGLECT_TEXT), true);
+  assert.strictEqual(view.outcome.dim, true);
+  assert.strictEqual(st.log[st.log.length - 1].dim, true, '일지의 닫힘 줄은 흐리게');
+  const au = st.log.map(function (l) { return l.author; }).join('\n');
+  assert.ok(au.includes(E.NEGLECT_NOTE_LABEL) && au.includes('IGNORE표지 전체 본문') && au.includes('방치 결: 나빠짐'), '작성자 줄에 방치 원문이 없음');
+  assert.deepStrictEqual(E.neglectNote(st, c), { label: E.NEGLECT_NOTE_LABEL, tone: '나빠짐', text: 'IGNORE표지 전체 본문' });
+}
+test('길이 공개되기 전에 닫으면 놓침(못 알아봄): 방치 원문, 결 낱말, 사정이 뷰와 일지에 없고 고정 문구만, 사정과 원문은 작성자 줄에만', function () {
   const c = ctxOf(hold({}));
   ['ignore', 'close'].forEach(function (act) {
     [['accept', act], ['accept', 'review', act]].forEach(function (acts) {
       const st = run(c, acts);
-      assert.strictEqual(st.status, '놓침');
-      const pub = texts(st).join('\n');
-      assert.ok(pub.includes('방치 결: 나빠짐'));
-      assert.ok(!pub.includes('SAJEONG표지') && !pub.includes('IGNORE표지'));
-      assert.ok(st.log.some(function (l) { return l.author === '사정: SAJEONG표지'; }));
-      assert.ok(!JSON.stringify(E.publicView(st, c)).includes('SAJEONG표지'));
+      assertNeglectHidden(c, st, '놓침');
+      assert.ok(texts(st).join('\n').includes('무엇이었는지 모른 채 닫힘.'));
+      assert.ok(st.log.some(function (l) { return l.author.includes('사정: SAJEONG표지'); }));
     });
   });
 });
-test('능력 검토 뒤 아무것도 안 고르고 닫으면 방치: 일지에 방치 줄 본문 전체, 수동 닫기는 줄이 하나 더', function () {
+test('길이 공개된 뒤 아무것도 안 고르고 닫아도(그냥 둔다, 수동 닫기 둘 다) 방치 원문과 결 낱말은 안 보이고 고정 문구만', function () {
   const c = ctxOf(hold(ABILITY));
   const st = run(c, ['accept', 'review', 'ignore']);
-  assert.strictEqual(st.status, '방치');
-  assert.ok(texts(st).includes('방치: IGNORE표지 전체 본문'));
+  assertNeglectHidden(c, st, '방치');
+  assert.ok(texts(st).includes('방치: ' + E.NEGLECT_TEXT));
   const manual = run(c, ['accept', 'review', 'close']);
-  assert.strictEqual(manual.status, '방치');
+  assertNeglectHidden(c, manual, '방치');
   assert.ok(texts(manual).includes('방치로 닫기(수동).'));
+});
+test('고정 문구는 엔진 상수이고 씨앗마다 다르지 않으며, 방치 원문 메모는 방치나 놓침일 때만 있음', function () {
+  assert.strictEqual(E.NEGLECT_TEXT, '그냥 두고 지나간다. 무슨 일이 생길지는 아직 모른다.');
+  const c = ctxOf(hold(ABILITY));
+  [[], ['accept'], ['accept', 'review'], ['accept', 'review', 'take:1'], ['accept', 'review', 'bare'], ['decline']].forEach(function (acts) {
+    assert.strictEqual(E.neglectNote(run(c, acts), c), null, acts.join(','));
+  });
 });
 test('닫힘 해석(사용자 판정 대기): 능력 검토가 열렸는데 채운 길이 0개일 때 닫으면 방치. 계획서 3.2의 "길이 하나도 공개되지 않은 채 닫힘 = 못 알아봄"과 글자 그대로는 다르게 읽힘', function () {
   const c = ctxOf(hold({ '비파괴 판독기': '가동' }));
@@ -478,6 +496,21 @@ test('실제 데이터: 능력 검토가 열렸는데 채운 길이 0개이면 �
   const st = run(c, ['accept', 'review']);
   assert.deepStrictEqual(labelsOf(E.publicView(st, c)), ['맨손으로 버틴다', '그냥 둔다']);
   assert.strictEqual(E.applyAction(st, c, 'ignore').status, '방치');
+});
+const NEGLECT_WORDS = ['좌표를 바꾼다', '정거장이 고른 곳', '나빠짐', '알갱이를 둔 채'];
+[['ability', ['accept', 'review', 'ignore'], '방치'], ['none', ['accept', 'review', 'close'], '놓침'], ['none', ['accept', 'ignore'], '놓침']].forEach(function (g) {
+  test('실제 데이터 ' + g[0] + ' ' + g[1].join(','), function () {
+    const c = realCtx(g[0]);
+    const st = run(c, g[1]);
+    assert.strictEqual(st.status, g[2]);
+    const shown = texts(st).join('\n') + JSON.stringify(E.publicView(st, c));
+    absent(shown, NEGLECT_WORDS.concat([c.seed.ignore]));
+    assert.ok(shown.includes(E.NEGLECT_TEXT));
+    const note = E.neglectNote(st, c);
+    assert.strictEqual(note.text, c.seed.ignore);
+    NEGLECT_WORDS.forEach(function (w) { assert.ok(note.text.includes(w) || note.tone === w, '작성자 메모에 없음: ' + w); });
+    assert.ok(st.log.map(function (l) { return l.author; }).join('\n').includes(c.seed.ignore));
+  });
 });
 test('실제 데이터: 플레이 보기 패널에는 검토 능력 수단만, 길 요구 수단 이름은 하나도 없음', function () {
   if (built === null) throw new Error('seedgame.html을 못 읽음: 먼저 build');

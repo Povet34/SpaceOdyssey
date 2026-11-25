@@ -13,6 +13,10 @@
   const GENERAL_REVIEW_TEXT = '겉으로는 잘 되어 있는 것 같다.';
   const MOUNT_NOTE = '하루 더, 본래 쓰임 멈춤';
   const BARE_LABEL = '맨손으로 버틴다';
+  // 그냥 두면 당할 때까지 알려주지 않는다(사용자 원칙). 방치로 닫혀도 플레이 보기와 일지에는 이 고정 문구만 흐리게 보인다.
+  const NEGLECT_TEXT = '그냥 두고 지나간다. 무슨 일이 생길지는 아직 모른다.';
+  // 작성자 보기의 회색 방치 원문 라벨. 실제 플레이에서는 이 내용을 미리 알리지 않고 동면(4단계)이 끝나 일어났을 때 결과로만 알게 된다.
+  const NEGLECT_NOTE_LABEL = '작성자 확인용. 실제 플레이에서는 이 내용을 미리 알려 주지 않고, 다음 동면이 끝나 일어났을 때 결과로만 알게 됨(동면은 4단계라 지금은 없음)';
   const PLAIN_CATS = ['재료', '물건', '물체'];
   const LIFECYCLE_CATS = ['추진', '제조', '에너지', '감지', '몸', '일손', '사이오닉', '기르는 것', '풀 후보'];
   const LIFECYCLE_GALRAE = ['테크', '일손', '기르는 것'];
@@ -118,8 +122,8 @@
     }
   }
 
-  function entry(text, author = '') {
-    return { text: text, author: author };
+  function entry(text, author = '', dim = false) {
+    return { text: text, author: author, dim: dim };
   }
 
   function mustBeOpen(st, what) {
@@ -170,14 +174,16 @@
   // 닫는다(받은 뒤에만). 길이 하나도 공개되지 않은 채(level < 2) 닫으면 놓침(못 알아봄), 공개된 뒤면 방치.
   // 해석 주의: 능력 검토가 열려 이야기와 맨손이 보였으면 채운 길이 0개여도 공개된 것으로 보아 방치로 닫는다.
   // 계획서 3.2 정의("길이 하나도 공개되지 않은 채 닫힘 = 못 알아봄")와 글자 그대로는 다르게 읽힘, 사용자 판정 대기.
+  // 방치 원문과 결 낱말은 닫혀도 플레이 보기와 일지에 안 쓴다(고정 문구만). 원문은 일지의 author 줄과 neglectNote(작성자 보기)에만 있다.
   function ignore(st, ctx, by) {
     mustBeAccepted(st, by);
+    const hidden = NEGLECT_NOTE_LABEL + ' (방치 결: ' + ctx.seed.tone + '): ' + ctx.seed.ignore;
     const log = st.log.concat([entry(by + '.')]);
     if (st.level < 2) {
-      log.push(entry('놓침(못 알아봄): 무엇이었는지 모른 채 닫힘. 방치 결: ' + ctx.seed.tone + '.', '사정: ' + ctx.seed.sajeong));
+      log.push(entry('놓침(못 알아봄): 무엇이었는지 모른 채 닫힘. ' + NEGLECT_TEXT, '사정: ' + ctx.seed.sajeong + ' / ' + hidden, true));
       return Object.assign({}, st, { status: '놓침', log: log });
     }
-    log.push(entry('방치: ' + ctx.seed.ignore));
+    log.push(entry('방치: ' + NEGLECT_TEXT, hidden, true));
     return Object.assign({}, st, { status: '방치', log: log });
   }
 
@@ -234,8 +240,9 @@
 
   // 플레이 보기. 공개 단계가 허락한 글만 담는다. 화면은 이 값만 그리므로 숨긴 글은 DOM에 갈 길이 없다.
   // 선택 전 뷰에는 사정, 징후, 걸림돌, 맨손 원문과 길의 과정 글을 담지 않는다. 능력 검토에서는 사람이 쓴 discovery 한 덩어리만 보인다.
-  // 길의 과정과 결과, 맨손 원문, 방치 원문은 고르거나 닫은 뒤 outcome에서 처음 보인다(선택의 결과라서. 방치 원문은 길이 공개된 뒤
-  // 닫을 때만 담기고, 길이 하나도 공개되지 않은 채 닫히면 방치 결 낱말만 담김). 이 해석은 사용자 판정 대기다.
+  // 길의 과정과 결과, 맨손 원문은 고른 뒤 outcome에서 처음 보인다(선택의 결과라서).
+  // 방치 원문과 방치 결 낱말은 당할 때까지 알려주지 않는다(사용자 원칙). 방치로 닫혀도(길이 공개된 뒤든 아니든) 고정 문구 NEGLECT_TEXT만 흐리게
+  // 낸다. 원문과 결 낱말은 작성자 보기 전용 neglectNote에만 있다.
   function publicView(st, ctx) {
     const human = ctx.human;
     const open = st.status === '열림';
@@ -263,14 +270,14 @@
     } else if (st.status === '풀림') {
       const p = ctx.seed.paths[st.chosen.index];
       v.outcome = st.chosen.kind === 'bare'
-        ? { title: BARE_LABEL, process: '', result: ctx.seed.bare, left: '' }
-        : { title: pathLabel(ctx, p), process: p.process, result: p.result, left: p.left };
+        ? { title: BARE_LABEL, process: '', result: ctx.seed.bare, left: '', dim: false }
+        : { title: pathLabel(ctx, p), process: p.process, result: p.result, left: p.left, dim: false };
     } else if (st.status === '방치') {
-      v.outcome = { title: '방치', process: '', result: ctx.seed.ignore, left: '' };
+      v.outcome = { title: '방치', process: '', result: NEGLECT_TEXT, left: '', dim: true };
     } else if (st.status === '놓침') {
-      v.outcome = { title: '못 알아봄', process: '', result: '무엇이었는지 모른 채 닫힘. 방치 결: ' + ctx.seed.tone + '.', left: '' };
+      v.outcome = { title: '못 알아봄', process: '', result: '무엇이었는지 모른 채 닫힘. ' + NEGLECT_TEXT, left: '', dim: true };
     } else if (st.status === '거절') {
-      v.outcome = { title: '거절', process: '', result: human.decline_result, left: '' };
+      v.outcome = { title: '거절', process: '', result: human.decline_result, left: '', dim: false };
     } else {
       throw new Error('모르는 상태 "' + st.status + '"');
     }
@@ -281,6 +288,12 @@
   // 길 요구의 수단 이름은 숨긴 길을 가리키므로 공개 단계 전에는 플레이 보기에 그리지 않는다.
   function panelNames(data, author) {
     return author ? data.panel : data.human.review.means;
+  }
+
+  // 작성자 보기 전용: 방치나 놓침으로 닫혔을 때 회색으로 보일 방치 원문과 결 낱말(검사용). 플레이 보기 view에는 안 담는다.
+  function neglectNote(st, ctx) {
+    if (st.status !== '방치' && st.status !== '놓침') return null;
+    return { label: NEGLECT_NOTE_LABEL, tone: ctx.seed.tone, text: ctx.seed.ignore };
   }
 
   // 작성자 보기에 쓰는 값: 길 전부의 요구와 채움 여부, 검토 능력이 지금 열리나.
@@ -340,9 +353,10 @@
 
   return {
     LIFECYCLE: LIFECYCLE, GENERAL_REVIEW_TEXT: GENERAL_REVIEW_TEXT, MOUNT_NOTE: MOUNT_NOTE,
+    NEGLECT_TEXT: NEGLECT_TEXT, NEGLECT_NOTE_LABEL: NEGLECT_NOTE_LABEL,
     kindOf: kindOf, holdOptions: holdOptions, fillRequirement: fillRequirement, fillPath: fillPath,
     reviewOpen: reviewOpen, requirementText: requirementText, usableEffects: usableEffects, describeEffect: describeEffect,
     start: start, accept: accept, decline: decline, review: review, ignore: ignore, take: take, bare: bare, applyAction: applyAction,
-    publicView: publicView, authorView: authorView, presetHoldings: presetHoldings, panelNames: panelNames, parseLink: parseLink,
+    publicView: publicView, neglectNote: neglectNote, authorView: authorView, presetHoldings: presetHoldings, panelNames: panelNames, parseLink: parseLink,
   };
 });

@@ -59,7 +59,8 @@ h3{font-size:13px;margin:0 0 6px;color:var(--accent)}
 .ok{color:var(--ok)}.bad{color:var(--err)}.dim{color:var(--dim)}
 #log{list-style:none;margin:0;padding:0}
 #log li{padding:6px 0;border-bottom:1px solid var(--line)}
-#log .au{color:var(--warn);display:block;font-size:12px}
+#log .au{color:var(--dim);display:block;font-size:12px}
+#log li.dim{color:var(--dim)}
 </style>
 </head>
 <body>
@@ -225,10 +226,13 @@ function drawCenter(frozen) {
       h('b', {}, o.label), o.mount ? h('em', {}, o.mount) : null))));
   }
   if (v.outcome) {
+    // 방치 원문과 결 낱말은 작성자 보기에서만 회색으로 그린다(플레이 보기 view에는 없음).
+    const note = author ? Engine.neglectNote(st, ctx) : null;
     card.append(h('div', { class: 'outcome' }, h('b', {}, '여파: ' + v.outcome.title),
       v.outcome.process ? h('div', { class: 'dim' }, v.outcome.process) : null,
-      h('div', {}, v.outcome.result),
-      v.outcome.left ? h('div', {}, '남는 것: ' + v.outcome.left) : null));
+      h('div', { class: v.outcome.dim ? 'dim' : '' }, v.outcome.result),
+      v.outcome.left ? h('div', {}, '남는 것: ' + v.outcome.left) : null,
+      note ? h('div', { class: 'dim' }, note.label + ' (방치 결: ' + note.tone + '): ' + note.text) : null));
   }
   const kids = frozen ? [failBox(), card] : [card];
   if (author) kids.push(drawAuthor(true));
@@ -278,7 +282,7 @@ function drawAuthor(playable) {
 }
 
 function drawLog() {
-  const items = st.log.map(e => h('li', {}, e.text, author && e.author ? h('span', { class: 'au' }, '작성자: ' + e.author) : null));
+  const items = st.log.map(e => h('li', { class: e.dim ? 'dim' : '' }, e.text, author && e.author ? h('span', { class: 'au' }, '작성자: ' + e.author) : null));
   fill(document.getElementById('right'), h('h2', {}, '일지'),
     items.length ? h('ol', { id: 'log' }, items) : h('div', { class: 'dim' }, '아직 아무 일도 없음'));
 }
