@@ -136,3 +136,10 @@ crashlytics-build.properties
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# 에셋 팩 모음(3.4GB, 프로젝트가 참조하지 않음)은 저장소에 넣지 않는다. 새 환경에서는 보유한 팩을 다시 받는다
+/[Aa]ssets/Imports/
+/[Aa]ssets/Imports.meta
+
+# 에디터 교통정리 도구의 로컬 상태 파일
+.claude/editor-lock.json*
