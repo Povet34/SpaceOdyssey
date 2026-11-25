@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace SpaceOdyssey.Blockout
 {
-    /// <summary>세그먼트 칸 지도의 칸 종류. 통로 칸과 방칸이 가압구역, 설비 칸이 설비구역이다.</summary>
+    /// <summary>블록 칸 지도의 칸 종류. 통로 칸과 방칸이 가압구역, 설비 칸이 설비구역이다.</summary>
     public enum CellKind { Corridor, Room, Structure }
 
     /// <summary>양쪽이 가압 칸인 접합 변의 상태(계획서 2.5절 표의 접합 변 열).</summary>
@@ -15,7 +15,7 @@ namespace SpaceOdyssey.Blockout
     /// <summary>
     /// 통로 그물 A1(Docs/ShipLayoutNetworkPlan.md 11절 A1)의 규칙 계산. 장면 객체에 의존하지 않는다.
     /// 입력은 문자열(프리셋 텍스트, 형판 이름별 텍스트), 출력은 칸 좌표와 종류의 평범한 C# 자료다.
-    /// 형판 파서(2.7절), 프리셋 파서(2.6절), 형판 검사, 세그먼트 합치기, 접합부 계산과 접합 변 기본값 채우기(2.5절),
+    /// 형판 파서(2.7절), 프리셋 파서(2.6절), 형판 검사, 블록 합치기, 접합부 계산과 접합 변 기본값 채우기(2.5절),
     /// 배 전체 검사, 콘솔용 통계가 여기 있다. B1a에서 입력이 형식 2 데이터 타입으로 바뀐다.
     /// 입력은 사람이 손으로 쓴 텍스트(신뢰 경계)라서 규칙을 어기면 조용히 고치지 않고 예외로 멈춘다.
     /// </summary>
@@ -27,7 +27,7 @@ namespace SpaceOdyssey.Blockout
             public readonly string Name;
             public readonly Dictionary<Vector2Int, CellKind> Cells = new();
             public readonly Dictionary<Vector2Int, StructureRole> Roles = new();
-            /// <summary>통로 중간 차단막(차단막 글자). 세그먼트 내부 변이다.</summary>
+            /// <summary>통로 중간 차단막(차단막 글자). 블록 내부 변이다.</summary>
             public readonly HashSet<EdgeKey> Barriers = new();
             /// <summary>방 구획(직사각형 방칸 덩어리)과 그 문 방칸, 문 앞 통로 칸.</summary>
             public readonly List<RoomBlock> Blocks = new();
@@ -45,8 +45,8 @@ namespace SpaceOdyssey.Blockout
             public readonly List<(Vector2Int door, Vector2Int front)> Doors = new();
         }
 
-        /// <summary>배에 놓인 세그먼트. 칸은 형판 칸을 Offset만큼 옮긴 것이다(회전 없음).</summary>
-        public sealed class Segment
+        /// <summary>배에 놓인 블록. 칸은 형판 칸을 Offset만큼 옮긴 것이다(회전 없음).</summary>
+        public sealed class HullBlock
         {
             public string Id;
             public Template Template;
@@ -55,26 +55,26 @@ namespace SpaceOdyssey.Blockout
             public int Index;   // 프리셋에 적힌 순서. 표시 색을 고를 때만 쓴다
         }
 
-        /// <summary>세그먼트 식별자 쌍 하나. 접합 변은 두 칸이 서로 다른 세그먼트인 인접 칸 쌍의 변 전부(2.5절).</summary>
+        /// <summary>블록 식별자 쌍 하나. 접합 변은 두 칸이 서로 다른 블록인 인접 칸 쌍의 변 전부(2.5절).</summary>
         public sealed class Joint
         {
             public string Id;
-            public Segment A, B;
+            public HullBlock A, B;
             public readonly List<EdgeKey> Edges = new();
             /// <summary>양쪽이 가압 칸인 접합 변만 기록한다. 열린 변도 빠짐없이 적는다(2.5절).</summary>
             public readonly Dictionary<EdgeKey, SeamEdge> States = new();
         }
 
-        /// <summary>세그먼트를 배 좌표로 옮겨 합친 배 한 척.</summary>
+        /// <summary>블록을 배 좌표로 옮겨 합친 배 한 척.</summary>
         public sealed class Ship
         {
             public string PresetName;
-            public readonly List<Segment> Segments = new();
-            public readonly Dictionary<Vector2Int, Segment> OwnerOf = new();
+            public readonly List<HullBlock> HullBlocks = new();
+            public readonly Dictionary<Vector2Int, HullBlock> OwnerOf = new();
             public readonly Dictionary<Vector2Int, CellKind> KindOf = new();
             public readonly Dictionary<Vector2Int, StructureRole> RoleOf = new();
             public readonly List<(Vector2Int door, Vector2Int front)> Doors = new();
-            /// <summary>통로 중간 차단막(세그먼트 내부 변, 배 좌표). 접합부 차단막은 Joints에 있다.</summary>
+            /// <summary>통로 중간 차단막(블록 내부 변, 배 좌표). 접합부 차단막은 Joints에 있다.</summary>
             public readonly HashSet<EdgeKey> InnerBarriers = new();
             public readonly SortedDictionary<string, Joint> Joints = new(StringComparer.Ordinal);
             public readonly List<string> Warnings = new();
@@ -105,21 +105,21 @@ namespace SpaceOdyssey.Blockout
             var preset = ParsePreset(presetName, presetText, texts);
             var ship = new Ship { PresetName = presetName };
             var parsed = new Dictionary<string, Template>(StringComparer.Ordinal);
-            foreach (var (id, templateName, offset, line) in preset.Segments)
+            foreach (var (id, templateName, offset, line) in preset.HullBlocks)
             {
                 if (!parsed.TryGetValue(templateName, out var t))
                     parsed[templateName] = t = ParseTemplate(templateName, texts[templateName]);
                 // 검사의 통로 연결은 정렬 첫 통로 칸에서 시작하므로 통로 0칸이면 그보다 먼저 멈춘다(계획서 2.8절)
                 if (t.CorridorCount == 0)
-                    throw new InvalidOperationException($"프리셋 '{presetName}' {line}번째 줄: 세그먼트 '{id}'(형판 '{t.Name}')에 통로 칸이 없음. 통로 없는 세그먼트는 A1에서 허용하지 않는다(계획서 2.8절)");
+                    throw new InvalidOperationException($"프리셋 '{presetName}' {line}번째 줄: 블록 '{id}'(형판 '{t.Name}')에 통로 칸이 없음. 통로 없는 블록은 A1에서 허용하지 않는다(계획서 2.8절)");
                 if (!t.Validated)
                 {
                     ValidateTemplate(t);
                     ship.Warnings.AddRange(t.Warnings);
                 }
 
-                var seg = new Segment { Id = id, Template = t, Offset = offset, PresetLine = line, Index = ship.Segments.Count };
-                Place(ship, seg);
+                var hullBlock = new HullBlock { Id = id, Template = t, Offset = offset, PresetLine = line, Index = ship.HullBlocks.Count };
+                Place(ship, hullBlock);
             }
 
             ship.Start = preset.Start;
@@ -132,29 +132,29 @@ namespace SpaceOdyssey.Blockout
             return ship;
         }
 
-        static void Place(Ship ship, Segment seg)
+        static void Place(Ship ship, HullBlock hullBlock)
         {
-            var t = seg.Template;
+            var t = hullBlock.Template;
             var cells = new List<Vector2Int>(t.Cells.Keys);
             cells.Sort(CompareCells);
             foreach (var local in cells)
             {
-                var c = local + seg.Offset;
+                var c = local + hullBlock.Offset;
                 if (ship.OwnerOf.TryGetValue(c, out var other))
-                    throw new InvalidOperationException($"프리셋 '{ship.PresetName}' {seg.PresetLine}번째 줄: 세그먼트 겹침. 배 칸 {c}에 세그먼트 '{other.Id}'와 '{seg.Id}'가 둘 다 있다");
-                ship.OwnerOf[c] = seg;
+                    throw new InvalidOperationException($"프리셋 '{ship.PresetName}' {hullBlock.PresetLine}번째 줄: 블록 겹침. 배 칸 {c}에 블록 '{other.Id}'와 '{hullBlock.Id}'가 둘 다 있다");
+                ship.OwnerOf[c] = hullBlock;
                 ship.KindOf[c] = t.Cells[local];
                 if (t.Roles.TryGetValue(local, out var role)) ship.RoleOf[c] = role;
             }
             foreach (var block in t.Blocks)
                 foreach (var (door, front) in block.Doors)
-                    ship.Doors.Add((door + seg.Offset, front + seg.Offset));
+                    ship.Doors.Add((door + hullBlock.Offset, front + hullBlock.Offset));
             foreach (var k in t.Barriers)
-                ship.InnerBarriers.Add(new EdgeKey(k.x + seg.Offset.x, k.z + seg.Offset.y, k.axis));
-            ship.Segments.Add(seg);
+                ship.InnerBarriers.Add(new EdgeKey(k.x + hullBlock.Offset.x, k.z + hullBlock.Offset.y, k.axis));
+            ship.HullBlocks.Add(hullBlock);
         }
 
-        // 접합부 = 세그먼트 식별자의 순서 없는 쌍마다 하나. 식별자는 서수 비교로 정렬한 "작은쪽+큰쪽"(2.5절)
+        // 접합부 = 블록 식별자의 순서 없는 쌍마다 하나. 식별자는 서수 비교로 정렬한 "작은쪽+큰쪽"(2.5절)
         static void ComputeJoints(Ship ship)
         {
             var cells = new List<Vector2Int>(ship.OwnerOf.Keys);
@@ -205,7 +205,7 @@ namespace SpaceOdyssey.Blockout
             foreach (var (c, k) in ship.KindOf) if (k == CellKind.Corridor) corridor.Add(c);
             var fronts = new HashSet<Vector2Int>();
             foreach (var (_, front) in ship.Doors) fronts.Add(front);
-            // 배 전체에서 다시 돌림: 세그먼트를 붙이면 경계에 있던 통로 끝이 더는 우주에 닿지 않아 앵커 자격을 잃는다(3.3절)
+            // 배 전체에서 다시 돌림: 블록을 붙이면 경계에 있던 통로 끝이 더는 우주에 닿지 않아 앵커 자격을 잃는다(3.3절)
             CheckCorridors(where, corridor, c => ship.OwnerOf.ContainsKey(c), fronts);
         }
 
@@ -213,7 +213,7 @@ namespace SpaceOdyssey.Blockout
 
         sealed class Preset
         {
-            public readonly List<(string id, string template, Vector2Int offset, int line)> Segments = new();
+            public readonly List<(string id, string template, Vector2Int offset, int line)> HullBlocks = new();
             public Vector2Int Start;
             public int StartLine;
         }
@@ -233,14 +233,14 @@ namespace SpaceOdyssey.Blockout
                 string at = $"프리셋 '{presetName}' {lineNo}번째 줄";
                 switch (w[0])
                 {
-                    case "segment":
-                        if (w.Length != 5) throw new FormatException($"{at}: segment 줄은 'segment <식별자> <형판이름> <x> <z>' 다섯 단어여야 한다(지금 {w.Length}개)");
-                        if (ids.TryGetValue(w[1], out int prev)) throw new FormatException($"{at}: 세그먼트 식별자 '{w[1]}'가 {prev}번째 줄과 겹친다");
+                    case "block":
+                        if (w.Length != 5) throw new FormatException($"{at}: block 줄은 'block <식별자> <형판이름> <x> <z>' 다섯 단어여야 한다(지금 {w.Length}개)");
+                        if (ids.TryGetValue(w[1], out int prev)) throw new FormatException($"{at}: 블록 식별자 '{w[1]}'가 {prev}번째 줄과 겹친다");
                         // 접합부 식별자가 "작은쪽+큰쪽"이라 '+'가 식별자에 있으면 서로 다른 두 쌍이 같은 접합부 이름이 되어 변이 섞임(리뷰 지적 1)
-                        if (w[1].Contains('+')) throw new FormatException($"{at}: 세그먼트 식별자 '{w[1]}'에 '+'가 있다. 접합부 식별자가 '작은쪽+큰쪽'이라 '+'를 쓸 수 없다");
+                        if (w[1].Contains('+')) throw new FormatException($"{at}: 블록 식별자 '{w[1]}'에 '+'가 있다. 접합부 식별자가 '작은쪽+큰쪽'이라 '+'를 쓸 수 없다");
                         if (!templates.ContainsKey(w[2])) throw new FormatException($"{at}: 알 수 없는 형판 이름 '{w[2]}'. 형판 목록에 그 이름의 텍스트가 없다");
                         ids[w[1]] = lineNo;
-                        preset.Segments.Add((w[1], w[2], new Vector2Int(ParseInt(w[3], at), ParseInt(w[4], at)), lineNo));
+                        preset.HullBlocks.Add((w[1], w[2], new Vector2Int(ParseInt(w[3], at), ParseInt(w[4], at)), lineNo));
                         break;
                     case "start":
                         if (w.Length != 3) throw new FormatException($"{at}: start 줄은 'start <x> <z>' 세 단어여야 한다(지금 {w.Length}개)");
@@ -250,10 +250,10 @@ namespace SpaceOdyssey.Blockout
                         break;
                     default:
                         // module 줄은 A2, 접합 변 덮어쓰기 줄은 B1a에서 생긴다. A1에서는 알 수 없는 줄 종류다
-                        throw new FormatException($"{at}: 알 수 없는 줄 종류 '{w[0]}'(A1은 segment, start만 받는다)");
+                        throw new FormatException($"{at}: 알 수 없는 줄 종류 '{w[0]}'(A1은 block, start만 받는다)");
                 }
             }
-            if (preset.Segments.Count == 0) throw new FormatException($"프리셋 '{presetName}'에 segment 줄이 없다");
+            if (preset.HullBlocks.Count == 0) throw new FormatException($"프리셋 '{presetName}'에 block 줄이 없다");
             if (preset.StartLine == 0) throw new FormatException($"프리셋 '{presetName}'에 start 줄이 없다. 정확히 하나여야 한다");
             return preset;
         }
@@ -373,16 +373,16 @@ namespace SpaceOdyssey.Blockout
                 t.Blocks.Add(block);
             }
 
-            // 차단막 글자가 가리키는 변 너머가 같은 세그먼트의 통로 칸이어야 한다(2.7절 구멍 다). 접합부 차단막은 자동이라 세그먼트 밖도 안 됨
+            // 차단막 글자가 가리키는 변 너머가 같은 블록의 통로 칸이어야 한다(2.7절 구멍 다). 접합부 차단막은 자동이라 블록 밖도 안 됨
             foreach (var k in t.Barriers)
                 if (!t.Cells.TryGetValue(k.CellB, out var kind) || kind != CellKind.Corridor)
-                    throw new InvalidOperationException($"{Where(k.CellA)}의 차단막 글자가 가리키는 변 너머 칸 {k.CellB}이 같은 세그먼트의 통로 칸이 아니다");
+                    throw new InvalidOperationException($"{Where(k.CellA)}의 차단막 글자가 가리키는 변 너머 칸 {k.CellB}이 같은 블록의 통로 칸이 아니다");
 
             var corridor = new HashSet<Vector2Int>();
             foreach (var (c, k) in t.Cells) if (k == CellKind.Corridor) corridor.Add(c);
             var fronts = new HashSet<Vector2Int>();
             foreach (var b in t.Blocks) foreach (var (_, front) in b.Doors) fronts.Add(front);
-            // 세그먼트 하나의 통로는 그 안에서 한 덩어리여야 한다(떼어 낸 세그먼트도 혼자서 말이 되는 가방, 2.8절)
+            // 블록 하나의 통로는 그 안에서 한 덩어리여야 한다(떼어 낸 블록도 혼자서 말이 되는 가방, 2.8절)
             CheckCorridors($"형판 '{t.Name}'", corridor, c => t.Cells.ContainsKey(c), fronts);
             t.Validated = true;
         }
@@ -495,17 +495,17 @@ namespace SpaceOdyssey.Blockout
             }
 
             var sb = new StringBuilder();
-            sb.AppendLine($"[ShipNetworkRules] 프리셋 '{ship.PresetName}': 세그먼트 {ship.Segments.Count}개, 접합부 {ship.Joints.Count}개, 선체 {ship.KindOf.Count}칸, 가압 비율 {pressurized / (float)ship.KindOf.Count:P1}");
+            sb.AppendLine($"[ShipNetworkRules] 프리셋 '{ship.PresetName}': 블록 {ship.HullBlocks.Count}개, 접합부 {ship.Joints.Count}개, 선체 {ship.KindOf.Count}칸, 가압 비율 {pressurized / (float)ship.KindOf.Count:P1}");
 
             int trunkDirect = 0;
-            foreach (var seg in ship.Segments)
+            foreach (var hullBlock in ship.HullBlocks)
             {
                 int n0 = 0, n1 = 0, n2 = 0;
-                foreach (var k in seg.Template.Cells.Values)
+                foreach (var k in hullBlock.Template.Cells.Values)
                     if (k == CellKind.Corridor) n0++; else if (k == CellKind.Room) n1++; else n2++;
-                sb.AppendLine($"  세그먼트 {seg.Id}(형판 {seg.Template.Name}, 위치 {seg.Offset}): 통로 {n0}, 방칸 {n1}(방 구획 {seg.Template.Blocks.Count}개), 설비 {n2}");
-                foreach (var block in seg.Template.Blocks)
-                    if (block.Doors.Exists(x => IsTrunk(corridor, x.front + seg.Offset))) trunkDirect++;
+                sb.AppendLine($"  블록 {hullBlock.Id}(형판 {hullBlock.Template.Name}, 위치 {hullBlock.Offset}): 통로 {n0}, 방칸 {n1}(방 구획 {hullBlock.Template.Blocks.Count}개), 설비 {n2}");
+                foreach (var block in hullBlock.Template.Blocks)
+                    if (block.Doors.Exists(x => IsTrunk(corridor, x.front + hullBlock.Offset))) trunkDirect++;
             }
 
             int jointBarriers = 0;

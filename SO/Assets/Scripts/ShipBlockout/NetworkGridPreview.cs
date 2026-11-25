@@ -6,7 +6,7 @@ namespace SpaceOdyssey.Blockout
     /// <summary>
     /// 통로 그물 A1(Docs/ShipLayoutNetworkPlan.md 11절 A1)의 판정용 미리보기.
     /// 프리셋 텍스트와 형판 텍스트를 ShipNetworkRules에 넘기고, 돌려받은 배를 그리기만 한다(파서와 검사는 규칙 클래스에 있음).
-    /// 통로와 방칸 바닥, 설비 칸 판, 못 들어가게 막는 보이지 않는 충돌체, 세그먼트별 색조, 접합 변 선, 차단막 띠를 깐다.
+    /// 통로와 방칸 바닥, 설비 칸 판, 못 들어가게 막는 보이지 않는 충돌체, 블록별 색조, 접합 변 선, 차단막 띠를 깐다.
     /// 벽, 문 조각, 외피, 단면, 소품, 모듈은 만들지 않는다. B1b에서 형식 2 생성기로 대체되고 지운다.
     /// 컨트롤러(ShipBlockoutController)가 Awake에서 바닥 그룹을 읽으므로 그보다 먼저 실행한다.
     /// </summary>
@@ -19,7 +19,7 @@ namespace SpaceOdyssey.Blockout
         public TextAsset Preset { get; set; }
 
         [field: SerializeField]
-        [field: Tooltip("세그먼트 형판 문자 격자(.txt) 목록. 프리셋이 에셋 이름으로 찾는다(계획서 2.7절)")]
+        [field: Tooltip("블록 형판 문자 격자(.txt) 목록. 프리셋이 에셋 이름으로 찾는다(계획서 2.7절)")]
         public TextAsset[] Templates { get; set; }
 
         [field: Header("그룹 (컨트롤러가 참조)")]
@@ -67,9 +67,9 @@ namespace SpaceOdyssey.Blockout
         const float DoorMarkWidth = 0.15f;    // 문 줄 폭(m)
         const float SeamWidth = 0.12f;        // 접합 변 선 폭(m)
         const float BarrierWidth = 0.35f;     // 차단막 띠 폭(m). 변을 가운데에 두고 양쪽 칸으로 반씩
-        const float CorridorSaturation = 0.22f, CorridorValue = 0.9f;   // 통로 바닥: 세그먼트 색조를 옅게, 밝게
+        const float CorridorSaturation = 0.22f, CorridorValue = 0.9f;   // 통로 바닥: 블록 색조를 옅게, 밝게
         const float RoomSaturation = 0.4f, RoomValue = 0.55f;           // 방칸 바닥: 통로보다 탁하고 어둡게
-        const float StructureTint = 0.35f;    // 설비 판 역할 색에 세그먼트 색조를 섞는 비율. 높을수록 세그먼트 구분이 강하고 역할 구분이 약함
+        const float StructureTint = 0.35f;    // 설비 판 역할 색에 블록 색조를 섞는 비율. 높을수록 블록 구분이 강하고 역할 구분이 약함
 
         static readonly Vector2Int[] Dirs = { Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down };
 
@@ -95,24 +95,24 @@ namespace SpaceOdyssey.Blockout
             foreach (var m in _materials) Destroy(m);
         }
 
-        static float Hue(ShipNetworkRules.Segment seg) => seg.Index * 0.618034f % 1f;   // 세그먼트마다 황금비 간격의 색상
+        static float Hue(ShipNetworkRules.HullBlock hullBlock) => hullBlock.Index * 0.618034f % 1f;   // 블록마다 황금비 간격의 색상
 
         void Build(ShipNetworkRules.Ship ship)
         {
-            var mats = new Dictionary<(int seg, int kind), Material>();
-            Material SegmentMaterial(ShipNetworkRules.Segment seg, Vector2Int c)
+            var mats = new Dictionary<(int hullBlock, int kind), Material>();
+            Material HullBlockMaterial(ShipNetworkRules.HullBlock hullBlock, Vector2Int c)
             {
                 var kind = ship.KindOf[c];
                 int key = kind == CellKind.Structure ? 2 + (int)ship.RoleOf[c] : (int)kind;
-                if (mats.TryGetValue((seg.Index, key), out var m)) return m;
-                float h = Hue(seg);
+                if (mats.TryGetValue((hullBlock.Index, key), out var m)) return m;
+                float h = Hue(hullBlock);
                 var color = kind switch
                 {
                     CellKind.Corridor => Color.HSVToRGB(h, CorridorSaturation, CorridorValue),
                     CellKind.Room => Color.HSVToRGB(h, RoomSaturation, RoomValue),
                     _ => Color.Lerp(StructureColors[(int)ship.RoleOf[c]], Color.HSVToRGB(h, 0.6f, 0.35f), StructureTint),
                 };
-                return mats[(seg.Index, key)] = MakeMaterial($"{seg.Id}_{key}", color);
+                return mats[(hullBlock.Index, key)] = MakeMaterial($"{hullBlock.Id}_{key}", color);
             }
 
             var all = new List<Vector2Int>(ship.KindOf.Keys);
@@ -122,7 +122,7 @@ namespace SpaceOdyssey.Blockout
             foreach (var c in all)
             {
                 var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                go.GetComponent<Renderer>().sharedMaterial = SegmentMaterial(ship.OwnerOf[c], c);
+                go.GetComponent<Renderer>().sharedMaterial = HullBlockMaterial(ship.OwnerOf[c], c);
                 if (ship.KindOf[c] != CellKind.Structure)
                 {
                     // 컨트롤러는 이 그룹 자식의 월드 위치를 반내림해서 칸을 읽는다. 생성기(ShipGenerator)와 같은 모양과 위치 규칙

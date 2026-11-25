@@ -1,5 +1,5 @@
 ; 일부러 깨뜨린 확인용 프리셋: 없는 형판 이름.
 ; 확인 방법: 씬 미리보기의 Preset을 이 파일로 바꾸고 Play(Templates는 그대로). 평소 씬은 이것을 가리키지 않음.
-segment engine Seg_Engine 0 3
-segment ghost Seg_Nowhere 16 0
+block engine Blk_Engine 0 3
+block ghost Blk_Nowhere 16 0
 start 9 13
