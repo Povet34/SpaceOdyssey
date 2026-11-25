@@ -12,6 +12,7 @@
   const LIFECYCLE = ['없음', '미분석', '연구 중', '연구 완료', '가동', '배양 중', '낡음', '고장', '대체됨'];
   const GENERAL_REVIEW_TEXT = '겉으로는 잘 되어 있는 것 같다.';
   const MOUNT_NOTE = '하루 더, 본래 쓰임 멈춤';
+  const BARE_LABEL = '맨손으로 버틴다';
   const PLAIN_CATS = ['재료', '물건', '물체'];
   const LIFECYCLE_CATS = ['추진', '제조', '에너지', '감지', '몸', '일손', '사이오닉', '기르는 것', '풀 후보'];
   const LIFECYCLE_GALRAE = ['테크', '일손', '기르는 것'];
@@ -121,39 +122,56 @@
     return { text: text, author: author };
   }
 
-  function surfaceText(ctx) {
-    const s = ctx.human.surface !== null ? ctx.human.surface : ctx.seed.sign1;
-    if (s === '') throw new Error('표면 문구가 없음: "' + ctx.seed.title + '"의 징후 1이 비었고 사이드카 surface도 없음');
-    return s;
-  }
-
   function mustBeOpen(st, what) {
     if (st.status !== '열림') throw new Error(what + ': 이미 닫힌 일임(' + st.status + ')');
   }
 
-  function start() {
-    return { status: '열림', level: 0, chosen: null, log: [] };
+  // 받기 전(offer)에는 받는다와 거절한다만 된다. 검토, 그냥 둔다, 방치로 닫기는 받은 뒤에만.
+  function mustBeAccepted(st, what) {
+    mustBeOpen(st, what);
+    if (!st.accepted) throw new Error(what + ': 받기 전에는 할 수 없음 (받기 전에는 방치가 일어나지 않음)');
   }
 
-  // 검토한다. 능력이 있으면 능력 검토(level 2), 없으면 일반 검토(level 1, 닫히기 전에는 다시 검토할 수 있음).
+  function start() {
+    return { status: '열림', accepted: false, level: 0, chosen: null, log: [] };
+  }
+
+  function accept(st) {
+    mustBeOpen(st, '받는다');
+    if (st.accepted) throw new Error('받는다: 이미 받았음');
+    return Object.assign({}, st, { accepted: true, log: st.log.concat([entry('받는다.')]) });
+  }
+
+  // 거절한다 = 닫힘, 상태 "거절". 받지 않았으니 방치 결과는 적용하지 않는다(해가 없음).
+  // 해석 주의: 거절을 방치와 같게 보지 않고 해가 없다고 보는 것은 사용자 판정 대기.
+  function decline(st, ctx) {
+    mustBeOpen(st, '거절한다');
+    if (st.accepted) throw new Error('거절한다: 이미 받았음');
+    return Object.assign({}, st, {
+      status: '거절',
+      log: st.log.concat([entry('거절한다.'), entry('거절: ' + ctx.human.decline_result)]),
+    });
+  }
+
+  // 검토한다(받은 뒤에만). 능력이 있으면 능력 검토(level 2), 없으면 일반 검토(level 1, 닫히기 전에는 다시 검토할 수 있음).
   function review(st, ctx) {
-    mustBeOpen(st, '검토');
+    mustBeAccepted(st, '검토');
     if (st.level === 2) throw new Error('검토: 이미 능력 검토까지 열렸음');
     const r = reviewOpen(ctx.human.review, ctx.meta, ctx.holdings);
     const log = st.log.concat([entry('검토한다.')]);
     if (r.open) {
-      log.push(entry('능력 검토 성공: 사정, 징후, 걸림돌, 길이 드러남. (가동: ' + r.by.join(', ') + ')'));
+      log.push(entry('능력 검토 성공. (가동: ' + r.by.join(', ') + ')'));
       return Object.assign({}, st, { level: 2, log: log });
     }
     log.push(entry('일반 검토: ' + GENERAL_REVIEW_TEXT, '검토 능력 중 가동인 것이 없음: ' + (ctx.human.review.means.join(', ') || '(목록이 빔)')));
     return Object.assign({}, st, { level: 1, log: log });
   }
 
-  // 닫는다. 길이 하나도 공개되지 않은 채(level < 2) 닫으면 놓침(못 알아봄), 공개된 뒤면 방치.
-  // 해석 주의: 능력 검토가 열려 사정과 맨손이 보였으면 채운 길이 0개여도 공개된 것으로 보아 방치로 닫는다.
+  // 닫는다(받은 뒤에만). 길이 하나도 공개되지 않은 채(level < 2) 닫으면 놓침(못 알아봄), 공개된 뒤면 방치.
+  // 해석 주의: 능력 검토가 열려 이야기와 맨손이 보였으면 채운 길이 0개여도 공개된 것으로 보아 방치로 닫는다.
   // 계획서 3.2 정의("길이 하나도 공개되지 않은 채 닫힘 = 못 알아봄")와 글자 그대로는 다르게 읽힘, 사용자 판정 대기.
   function ignore(st, ctx, by) {
-    mustBeOpen(st, by);
+    mustBeAccepted(st, by);
     const log = st.log.concat([entry(by + '.')]);
     if (st.level < 2) {
       log.push(entry('놓침(못 알아봄): 무엇이었는지 모른 채 닫힘. 방치 결: ' + ctx.seed.tone + '.', '사정: ' + ctx.seed.sajeong));
@@ -161,6 +179,11 @@
     }
     log.push(entry('방치: ' + ctx.seed.ignore));
     return Object.assign({}, st, { status: '방치', log: log });
+  }
+
+  // 플레이 보기에서 길 이름. 사정을 흘리는 이름은 사이드카 path_labels가 바꿔 보인다(표에 없는 길은 원래 이름).
+  function pathLabel(ctx, path) {
+    return Object.prototype.hasOwnProperty.call(ctx.human.path_labels, path.name) ? ctx.human.path_labels[path.name] : path.name;
   }
 
   // n은 씨앗 안의 길 번호(1부터). 화면은 번호를 보이지 않고, 주소 조각과 작성자 보기가 쓴다.
@@ -177,7 +200,8 @@
         f.parts.filter(function (p) { return !p.ok; }).map(function (p) { return p.reason; }).join('; ') + ')');
     }
     const log = st.log.concat([
-      entry('길을 고른다: ' + path.name + (f.mounts.length ? ' (' + MOUNT_NOTE + ': ' + f.mounts.join(', ') + ')' : '')),
+      entry('길을 고른다: ' + pathLabel(ctx, path) + (f.mounts.length ? ' (' + MOUNT_NOTE + ': ' + f.mounts.join(', ') + ')' : '')),
+      entry('과정: ' + path.process),
       entry('결과: ' + path.result),
       entry('남는 것: ' + path.left),
     ]);
@@ -191,58 +215,62 @@
     return Object.assign({}, st, {
       status: '풀림',
       chosen: { kind: 'bare' },
-      log: st.log.concat([entry('맨손으로 버틴다.'), entry('맨손: ' + ctx.seed.bare)]),
+      log: st.log.concat([entry(BARE_LABEL + '.'), entry('맨손: ' + ctx.seed.bare)]),
     });
   }
 
   // 주소 조각의 행동 이름 하나를 실행한다.
   function applyAction(st, ctx, act) {
+    if (act === 'accept') return accept(st);
+    if (act === 'decline') return decline(st, ctx);
     if (act === 'review') return review(st, ctx);
     if (act === 'ignore') return ignore(st, ctx, '그냥 둔다');
     if (act === 'close') return ignore(st, ctx, '방치로 닫기(수동)');
     if (act === 'bare') return bare(st, ctx);
     const m = /^take:(\d+)$/.exec(act);
     if (m) return take(st, ctx, Number(m[1]));
-    throw new Error('모르는 행동 "' + act + '" (review, ignore, close, bare, take:<길 번호>)');
-  }
-
-  // 능력 검토 단계의 징후 칸. 표면이 사이드카 질문으로 바뀐 씨앗은 징후 1 원문도 여기서 징후 2와 함께 보인다.
-  // 표면이 징후 1 그대로인 씨앗은 이미 보였으니 징후 2만.
-  function revealedSigns(ctx) {
-    const parts = ctx.human.surface !== null ? [ctx.seed.sign1, ctx.seed.sign2] : [ctx.seed.sign2];
-    return parts.filter(function (t) { return t !== ''; }).join(' ');
+    throw new Error('모르는 행동 "' + act + '" (accept, decline, review, ignore, close, bare, take:<길 번호>)');
   }
 
   // 플레이 보기. 공개 단계가 허락한 글만 담는다. 화면은 이 값만 그리므로 숨긴 글은 DOM에 갈 길이 없다.
+  // 선택 전 뷰에는 사정, 징후, 걸림돌, 맨손 원문과 길의 과정 글을 담지 않는다. 능력 검토에서는 사람이 쓴 discovery 한 덩어리만 보인다.
+  // 길의 과정과 결과, 맨손 원문, 방치 원문은 고르거나 닫은 뒤 outcome에서 처음 보인다(선택의 결과라서. 방치 원문은 길이 공개된 뒤
+  // 닫을 때만 담기고, 길이 하나도 공개되지 않은 채 닫히면 방치 결 낱말만 담김). 이 해석은 사용자 판정 대기다.
   function publicView(st, ctx) {
+    const human = ctx.human;
     const open = st.status === '열림';
-    const revealed = st.level === 2;
     const v = {
-      status: st.status, level: st.level, open: open,
-      question: surfaceText(ctx),
+      status: st.status, level: st.level, accepted: st.accepted, open: open,
+      question: human.surface, lines: human.surface_lines,
+      afterAccept: st.accepted ? human.after_accept : null,
       general: st.level === 1 ? GENERAL_REVIEW_TEXT : null,
-      reveal: revealed ? { sajeong: ctx.seed.sajeong, signs: revealedSigns(ctx), obstacle: ctx.seed.obstacle } : null,
+      discovery: st.level === 2 ? human.discovery : null,
       options: [], outcome: null,
     };
-    if (open) {
-      if (revealed) {
+    if (open && !st.accepted) {
+      v.options.push({ act: 'accept', label: '받는다', mount: '' }, { act: 'decline', label: '거절한다', mount: '' });
+    } else if (open) {
+      if (st.level === 2) {
         ctx.seed.paths.forEach(function (p, i) {
           const f = fillPath(p, ctx.meta, ctx.holdings);
-          if (f.ok) v.options.push({ act: 'take:' + (i + 1), label: p.name, text: p.process, mount: f.mounts.length ? MOUNT_NOTE + ': ' + f.mounts.join(', ') : '' });
+          if (f.ok) v.options.push({ act: 'take:' + (i + 1), label: pathLabel(ctx, p), mount: f.mounts.length ? MOUNT_NOTE + ': ' + f.mounts.join(', ') : '' });
         });
-        v.options.push({ act: 'bare', label: '맨손', text: ctx.seed.bare, mount: '' });
+        v.options.push({ act: 'bare', label: BARE_LABEL, mount: '' });
       } else {
-        v.options.push({ act: 'review', label: '검토한다', text: '', mount: '' });
+        v.options.push({ act: 'review', label: '검토한다', mount: '' });
       }
-      v.options.push({ act: 'ignore', label: '그냥 둔다', text: '', mount: '' });
+      v.options.push({ act: 'ignore', label: '그냥 둔다', mount: '' });
     } else if (st.status === '풀림') {
+      const p = ctx.seed.paths[st.chosen.index];
       v.outcome = st.chosen.kind === 'bare'
-        ? { title: '맨손', result: ctx.seed.bare, left: '' }
-        : { title: ctx.seed.paths[st.chosen.index].name, result: ctx.seed.paths[st.chosen.index].result, left: ctx.seed.paths[st.chosen.index].left };
+        ? { title: BARE_LABEL, process: '', result: ctx.seed.bare, left: '' }
+        : { title: pathLabel(ctx, p), process: p.process, result: p.result, left: p.left };
     } else if (st.status === '방치') {
-      v.outcome = { title: '방치', result: ctx.seed.ignore, left: '' };
+      v.outcome = { title: '방치', process: '', result: ctx.seed.ignore, left: '' };
     } else if (st.status === '놓침') {
-      v.outcome = { title: '못 알아봄', result: '무엇이었는지 모른 채 닫힘. 방치 결: ' + ctx.seed.tone + '.', left: '' };
+      v.outcome = { title: '못 알아봄', process: '', result: '무엇이었는지 모른 채 닫힘. 방치 결: ' + ctx.seed.tone + '.', left: '' };
+    } else if (st.status === '거절') {
+      v.outcome = { title: '거절', process: '', result: human.decline_result, left: '' };
     } else {
       throw new Error('모르는 상태 "' + st.status + '"');
     }
@@ -260,7 +288,7 @@
     return {
       paths: ctx.seed.paths.map(function (p, i) {
         const f = fillPath(p, ctx.meta, ctx.holdings);
-        return { n: i + 1, name: p.name, requirement: requirementText(p), ok: f.ok, parts: f.parts, mounts: f.mounts };
+        return { n: i + 1, name: p.name, label: pathLabel(ctx, p), requirement: requirementText(p), ok: f.ok, parts: f.parts, mounts: f.mounts };
       }),
       review: Object.assign({ means: ctx.human.review.means }, reviewOpen(ctx.human.review, ctx.meta, ctx.holdings)),
     };
@@ -290,7 +318,7 @@
     throw new Error('모르는 프리셋 "' + name + '" (kit, none, ability)');
   }
 
-  // #preset=kit|none|ability&do=review,take:2,close,ignore&author=1
+  // #preset=kit|none|ability&do=accept,review,take:2,close,ignore&author=1
   function parseLink(hash) {
     const out = { preset: 'none', actions: [], author: false };
     const body = hash.replace(/^#/, '');
@@ -314,7 +342,7 @@
     LIFECYCLE: LIFECYCLE, GENERAL_REVIEW_TEXT: GENERAL_REVIEW_TEXT, MOUNT_NOTE: MOUNT_NOTE,
     kindOf: kindOf, holdOptions: holdOptions, fillRequirement: fillRequirement, fillPath: fillPath,
     reviewOpen: reviewOpen, requirementText: requirementText, usableEffects: usableEffects, describeEffect: describeEffect,
-    start: start, review: review, ignore: ignore, take: take, bare: bare, applyAction: applyAction,
+    start: start, accept: accept, decline: decline, review: review, ignore: ignore, take: take, bare: bare, applyAction: applyAction,
     publicView: publicView, authorView: authorView, presetHoldings: presetHoldings, panelNames: panelNames, parseLink: parseLink,
   };
 });

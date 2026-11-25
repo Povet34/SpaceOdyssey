@@ -29,7 +29,7 @@ BOOK_CATS = ('추진', '제조', '에너지', '감지', '몸', '일손', '사이
 SUPPORT_SECTION = '4. 감지와 통신과 앎'  # 00_TechPool.md의 사다리 후보 장
 # 시험용 프리셋 "능력 있음 예시". 5길 중 3길이 채워져 "채운 길만 보임"이 드러난다.
 ABILITY_PRESET = {'비파괴 판독기': '가동', '나노 자동 제조기': '가동', '함선 AI': '가동', '침투 탐침': '가동', '손에 맞게 닳은 공구': '계속 씀'}
-AUTO_HUMAN = {'surface': None, 'review': {'means': [], 'status': '사이드카 없음(자동층만)'}, 'signs2': '능력 검토'}
+HUMAN_KEYS = ('surface', 'surface_lines', 'after_accept', 'decline_result', 'discovery', 'path_labels', 'review')
 EFFECT_FIELDS = {
     '얻음': ('종류', '이름'), '잃음': ('종류', '이름'), '플래그': ('이름',), '게이지': ('축', '증감'),
     '후속 예약': ('씨앗',), '상태 바뀜': ('이름', '상태'), '내력 바뀜': ('이름', '내력'),
@@ -272,13 +272,23 @@ def check_entry(fn, entry, ctx, seed, an):
         if k not in entry:
             return ['%s: 필수 키 "%s"가 없음' % (where0, k)]
     h = entry['human']
-    for k in ('surface', 'review', 'signs2'):
-        if k not in h:
-            return ['%s: human에 필수 키 "%s"가 없음' % (where0, k)]
-    if not isinstance(h['surface'], str) or not h['surface']:
-        out.append('%s: human.surface는 비지 않은 글이어야 함' % where0)
-    if h['signs2'] != '능력 검토':
-        out.append('%s: human.signs2 "%s"는 1단계에서 "능력 검토"뿐임' % (where0, h['signs2']))
+    missing = [k for k in HUMAN_KEYS if k not in h]
+    if missing:
+        return ['%s: human에 필수 키 %s가 없음 (사람이 쓴 문구는 전부 필수, 원문으로 대신하지 않음)' % (where0, ', '.join('"%s"' % k for k in missing))]
+    for k in ('surface', 'after_accept', 'decline_result', 'discovery'):
+        if not isinstance(h[k], str) or not h[k]:
+            out.append('%s: human.%s는 비지 않은 글이어야 함' % (where0, k))
+    lines = h['surface_lines']
+    if not isinstance(lines, list) or not lines or not all(isinstance(x, str) and x for x in lines):
+        out.append('%s: human.surface_lines는 비지 않은 글의 비지 않은 목록이어야 함' % where0)
+    labels = h['path_labels']
+    if not isinstance(labels, dict) or not all(isinstance(k, str) and isinstance(v, str) and v for k, v in labels.items()):
+        out.append('%s: human.path_labels는 {길 이름: 보일 이름(비지 않은 글)}이어야 함' % where0)
+    elif seed is not None:
+        path_names = [p['name'] for p in an['info'][seed['id']]['paths']]
+        for k in labels:
+            if k not in path_names:
+                out.append('%s: human.path_labels의 길 이름 "%s"가 씨앗의 길 이름과 글자 그대로 같지 않음 (길: %s)' % (where0, k, path_names))
     rv = h['review']
     if not isinstance(rv, dict) or not isinstance(rv.get('means'), list) or not isinstance(rv.get('status'), str):
         return out + ['%s: human.review는 {"means": [수단...], "status": 글}이어야 함' % where0]
@@ -384,19 +394,29 @@ def find_play_seed(m, an):
 
 
 def play_payload(m, an, stats, seed, side):
+    """화면 데이터. 사이드카가 정상이 아니면 사람이 쓴 문구가 없어 플레이할 수 없으므로 원문과 이유만 낸다(원문을 이야기처럼 대신 쓰지 않음)."""
     info = an['info'][seed['id']]
+    raw = seed['raw']
+    seed_out = dict(key='%s %s' % PLAY_KEY, bundle=seed['bundle'], title=seed['title'], eras=seed['eras_raw'],
+                    targets=seed['targets'], sajeong=seed['summary'], sign1=info['sign1'], sign2=info['sign2'],
+                    obstacle=raw['걸림돌'], bare=raw['맨손'], ignore=raw['방치'], tone=info['tone'],
+                    objects=seed_objects(seed), links=raw['엮임'],
+                    paths=[dict(name=p['name'], means=p['means'], process=p['process'], result=p['result'], left=p['left'])
+                           for p in info['paths']])
     mine = [e for e in side if e['seed'] is seed]
-    if mine:
-        e = mine[0]
-        human = e['entry']['human']
-        sidecar = dict(state=e['state'], fingerprintSidecar=e['entry']['fingerprint'], fingerprintDoc=e['doc_fp'],
-                       checked=e['entry']['검토'] if e['state'] == '정상' else '안 됨',
-                       effects=e['entry']['effects'] if e['state'] == '정상' else {})
-        if e['state'] != '정상':
-            human = AUTO_HUMAN
-    else:
-        human = AUTO_HUMAN
-        sidecar = dict(state='없음', fingerprintSidecar='', fingerprintDoc=fingerprint(seed), checked='안 됨', effects={})
+    if not mine or mine[0]['state'] != '정상':
+        if mine:
+            e = mine[0]
+            reason = '사이드카가 낡아서 플레이할 수 없음 (사이드카 지문 %s, 문서 지문 %s). 작성자 보기에서 원문만 볼 수 있음' % (e['entry']['fingerprint'], e['doc_fp'])
+            sidecar = dict(state='낡음', fingerprintSidecar=e['entry']['fingerprint'], fingerprintDoc=e['doc_fp'])
+        else:
+            reason = '이 씨앗의 사이드카가 없어 플레이할 수 없음 (주인 없는 사이드카가 있으면 열쇠의 제목 철자를 확인). 작성자 보기에서 원문만 볼 수 있음'
+            sidecar = dict(state='없음', fingerprintSidecar='', fingerprintDoc=fingerprint(seed))
+        return dict(playable=False, reason=reason, seed=seed_out, sidecar=sidecar)
+    e = mine[0]
+    human = e['entry']['human']
+    sidecar = dict(state='정상', fingerprintSidecar=e['entry']['fingerprint'], fingerprintDoc=e['doc_fp'],
+                   checked=e['entry']['검토'], effects=e['entry']['effects'])
     panel = list(human['review']['means'])
     for p in seed['paths']:
         for r in p['means']:
@@ -406,20 +426,12 @@ def play_payload(m, an, stats, seed, side):
         if n not in m['means']:
             raise DataError(['프리셋 "능력 있음 예시"의 수단 "%s"가 지도 모델의 수단 목록에 없음' % n])
         if n not in panel:
-            panel.append(n)  # 사이드카가 없거나 낡아 검토 능력 목록이 비어도 시험용 프리셋은 그대로 쓸 수 있어야 한다
+            panel.append(n)  # 검토 능력 목록을 바꿔도 시험용 프리셋은 그대로 쓸 수 있어야 한다
     tags = item_tags(m)
     # 갈래 칸은 새 수단 표에만 있다. 다른 수단은 갈래 ''로 넘기고 engine.js가 cat으로 판정한다.
     meta = {n: dict(name=n, cat=m['means'][n]['cat'], galrae=m['means'][n]['cells'].get('갈래', '')) for n in panel}
-    raw = seed['raw']
-    return dict(
-        seed=dict(key='%s %s' % PLAY_KEY, bundle=seed['bundle'], title=seed['title'], eras=seed['eras_raw'],
-                  targets=seed['targets'], sajeong=seed['summary'], sign1=info['sign1'], sign2=info['sign2'],
-                  obstacle=raw['걸림돌'], bare=raw['맨손'], ignore=raw['방치'], tone=info['tone'],
-                  objects=seed_objects(seed), links=raw['엮임'],
-                  paths=[dict(name=p['name'], means=p['means'], process=p['process'], result=p['result'], left=p['left'])
-                         for p in info['paths']]),
-        human=human, sidecar=sidecar, meta=meta, panel=panel,
-        tags={n: sorted(tags[n]) for n in panel}, kit=stats['kit'], ability=ABILITY_PRESET)
+    return dict(playable=True, seed=seed_out, human=human, sidecar=sidecar, meta=meta, panel=panel,
+                tags={n: sorted(tags[n]) for n in panel}, kit=stats['kit'], ability=ABILITY_PRESET)
 
 
 # ---- 보고 ----
@@ -472,7 +484,7 @@ def report_lines(m, an, stats, side):
     for e in side:
         extra = ''
         if e['state'] == '낡음':
-            extra = ' (사이드카 지문 %s, 문서 지문 %s. 자동층으로만 뜸)' % (e['entry']['fingerprint'], e['doc_fp'])
+            extra = ' (사이드카 지문 %s, 문서 지문 %s. 플레이할 수 없고 작성자 보기에서 원문만 보임)' % (e['entry']['fingerprint'], e['doc_fp'])
         elif e['state'] == '정상':
             h = e['entry']['human']
             extra = ' (지문 %s, 검토: %s, 검토 능력: %s [%s])' % (
@@ -488,7 +500,7 @@ def banner_lines(side):
         return []
     L = ['#' * 70]
     if stale:
-        L.append('!!! 낡은 사이드카 %d개 (지문이 문서와 다름. 사이드카 없이 자동층으로만 뜸): %s' % (len(stale), ', '.join(stale)))
+        L.append('!!! 낡은 사이드카 %d개 (지문이 문서와 다름. 플레이할 수 없음, 작성자 보기에서 원문만 보임): %s' % (len(stale), ', '.join(stale)))
     if lost:
         L.append('!!! 주인 없는 사이드카 %d개 (열쇠에 맞는 씨앗이 없음): %s' % (len(lost), ', '.join(lost)))
     L.append('#' * 70)
