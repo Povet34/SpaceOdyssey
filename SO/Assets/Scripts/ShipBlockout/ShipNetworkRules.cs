@@ -6,62 +6,54 @@ using UnityEngine;
 
 namespace SpaceOdyssey.Blockout
 {
-    /// <summary>블록 칸 지도의 칸 종류. 통로 칸과 방칸이 가압구역, 설비 칸이 설비구역이다.</summary>
-    public enum CellKind { Corridor, Room, Structure }
-
-    /// <summary>양쪽이 가압 칸인 접합 변의 상태(계획서 2.5절 표의 접합 변 열).</summary>
-    public enum SeamEdge { Open, Wall, Barrier }
+    /// <summary>블록 칸 지도의 칸 종류. 가압 칸이 가압구역(걷는 칸), 설비 칸이 설비구역이다.</summary>
+    public enum CellKind { Pressurized, Structure }
 
     /// <summary>
-    /// 통로 그물 A1(Docs/ShipLayoutNetworkPlan.md 11절 A1)의 규칙 계산. 장면 객체에 의존하지 않는다.
-    /// 입력은 문자열(프리셋 텍스트, 형판 이름별 텍스트), 출력은 칸 좌표와 종류의 평범한 C# 자료다.
-    /// 형판 파서(2.7절), 프리셋 파서(2.6절), 형판 검사, 블록 합치기, 접합부 계산과 접합 변 기본값 채우기(2.5절),
-    /// 배 전체 검사, 콘솔용 통계가 여기 있다. B1a에서 입력이 형식 2 데이터 타입으로 바뀐다.
+    /// 양쪽이 가압 칸인 접합 변의 상태(옛 계획서 2.5절). N1은 전부 열린 변이다(계획서 8.1절 B).
+    /// Wall은 접합 변 덮어쓰기(후속 단계)가 생기면 쓰이고 N1에는 이 값을 만드는 경로가 없다. 도달 계산이 3.1절 정의("벽이 아니면 이어짐")를 그대로 구현하려고 Wall 분기를 둔다.
+    /// </summary>
+    public enum SeamEdge { Open, Wall }
+
+    /// <summary>
+    /// 블록 격자 N1(Docs/ShipBlockGridPlan.md 6장 N1)의 규칙 계산. 장면 객체에 의존하지 않는다.
+    /// 입력은 문자열(프리셋 텍스트, 종류 이름별 블록 종류 텍스트), 출력은 칸 좌표와 종류의 평범한 C# 자료다.
+    /// 블록 종류 파서(2.5절), 프리셋 파서(2.3절), 회전 배치(2.4절), 붙이기 규칙 1~3(3.2절), 접합부 계산과 접합 변 기본값,
+    /// 시작 칸 기준 도달과 고립 가압구역(3.1절), 콘솔용 통계가 여기 있다.
     /// 입력은 사람이 손으로 쓴 텍스트(신뢰 경계)라서 규칙을 어기면 조용히 고치지 않고 예외로 멈춘다.
     /// </summary>
     public static class ShipNetworkRules
     {
-        /// <summary>형판 하나를 읽고 검사한 결과. 좌표는 형판 자기 좌표(맨 아래 줄 첫 글자가 (0,0)).</summary>
-        public sealed class Template
+        /// <summary>블록 종류의 회전 전 크기(3열×5행, 계획서 2.4절).</summary>
+        public const int TypeWidth = 3, TypeHeight = 5;
+
+        /// <summary>블록 종류 하나. 좌표는 회전 전 자기 좌표 (u, v)(맨 아래 줄 첫 글자가 (0,0)).</summary>
+        public sealed class BlockType
         {
             public readonly string Name;
             public readonly Dictionary<Vector2Int, CellKind> Cells = new();
             public readonly Dictionary<Vector2Int, StructureRole> Roles = new();
-            /// <summary>통로 중간 차단막(차단막 글자). 블록 내부 변이다.</summary>
-            public readonly HashSet<EdgeKey> Barriers = new();
-            /// <summary>방 구획(직사각형 방칸 덩어리)과 그 문 방칸, 문 앞 통로 칸.</summary>
-            public readonly List<RoomBlock> Blocks = new();
-            public readonly List<string> Warnings = new();
-            internal readonly List<Vector2Int> DoorCells = new();
-            internal readonly Dictionary<int, int> FileLineOfZ = new();
-            internal int CorridorCount;
-            internal bool Validated;
-            public Template(string name) { Name = name; }
+            public BlockType(string name) { Name = name; }
         }
 
-        public sealed class RoomBlock
-        {
-            public Vector2Int Min, Max;
-            public readonly List<(Vector2Int door, Vector2Int front)> Doors = new();
-        }
-
-        /// <summary>배에 놓인 블록. 칸은 형판 칸을 Offset만큼 옮긴 것이다(회전 없음).</summary>
+        /// <summary>배에 놓인 블록. 칸은 종류 칸을 Rotation만큼 돌린 뒤 Origin만큼 옮긴 것이다(2.4절).</summary>
         public sealed class HullBlock
         {
             public string Id;
-            public Template Template;
-            public Vector2Int Offset;
+            public BlockType Type;
+            public Vector2Int Origin;   // 회전한 경계 상자의 왼쪽 아래 칸(배 좌표)
+            public int Rotation;        // 0, 90, 180, 270도 시계 방향
             public int PresetLine;
-            public int Index;   // 프리셋에 적힌 순서. 표시 색을 고를 때만 쓴다
+            public int Index;           // 프리셋에 적힌 순서. 표시 색을 고를 때만 쓴다
         }
 
-        /// <summary>블록 식별자 쌍 하나. 접합 변은 두 칸이 서로 다른 블록인 인접 칸 쌍의 변 전부(2.5절).</summary>
+        /// <summary>블록 식별자 쌍 하나. 접합 변은 두 칸이 서로 다른 블록인 인접 칸 쌍의 변 전부(옛 계획서 2.5절).</summary>
         public sealed class Joint
         {
             public string Id;
             public HullBlock A, B;
             public readonly List<EdgeKey> Edges = new();
-            /// <summary>양쪽이 가압 칸인 접합 변만 기록한다. 열린 변도 빠짐없이 적는다(2.5절).</summary>
+            /// <summary>양쪽이 가압 칸인 접합 변만 기록한다. 열린 변도 빠짐없이 적는다.</summary>
             public readonly Dictionary<EdgeKey, SeamEdge> States = new();
         }
 
@@ -73,88 +65,113 @@ namespace SpaceOdyssey.Blockout
             public readonly Dictionary<Vector2Int, HullBlock> OwnerOf = new();
             public readonly Dictionary<Vector2Int, CellKind> KindOf = new();
             public readonly Dictionary<Vector2Int, StructureRole> RoleOf = new();
-            public readonly List<(Vector2Int door, Vector2Int front)> Doors = new();
-            /// <summary>통로 중간 차단막(블록 내부 변, 배 좌표). 접합부 차단막은 Joints에 있다.</summary>
-            public readonly HashSet<EdgeKey> InnerBarriers = new();
             public readonly SortedDictionary<string, Joint> Joints = new(StringComparer.Ordinal);
-            public readonly List<string> Warnings = new();
             public Vector2Int Start;
-            public bool IsPressurized(Vector2Int c) => KindOf.TryGetValue(c, out var k) && k != CellKind.Structure;
+            /// <summary>시작 칸에서 도달 가능한 가압 칸(3.1절).</summary>
+            public readonly HashSet<Vector2Int> Reachable = new();
+            /// <summary>시작 칸에서 도달할 수 없는 가압 칸 덩어리들(고립 가압구역, 3.1절). 칸은 정렬되어 있다.</summary>
+            public readonly List<List<Vector2Int>> IsolatedZones = new();
+            public bool IsPressurized(Vector2Int c) => KindOf.TryGetValue(c, out var k) && k == CellKind.Pressurized;
         }
 
         static readonly Vector2Int[] Dirs = { Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down };
-
-        // 방 구획 크기 규격(짧은 변, 긴 변). 계획서 4.2절. 작은 방(2×2, 2×3)은 2026-11-24 사용자 결정
-        static readonly HashSet<(int, int)> RoomSizes = new() { (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5) };
 
         public static int CompareCells(Vector2Int a, Vector2Int b) => a.x != b.x ? a.x.CompareTo(b.x) : a.y.CompareTo(b.y);
 
         // ───────────────────────── 배 만들기 ─────────────────────────
 
         /// <summary>
-        /// 프리셋에서 배를 만든다: 프리셋 읽기 → 형판 읽기와 검사 → 배 좌표로 합치기(겹침 검사) → 접합부 계산 →
-        /// 접합 변 기본값 채우기 → 배 전체 검사(2.6절 순서).
+        /// 프리셋에서 배를 만든다: 블록 종류 읽기 → 프리셋 읽기 → 회전해서 배 좌표로 합치기(겹침 검사) → 맞닿음 검사 →
+        /// 시작 칸 검사 → 접합부 계산 → 접합 변 기본값 채우기 → 시작 칸 기준 도달과 고립 가압구역.
         /// </summary>
-        public static Ship Build(string presetName, string presetText, IReadOnlyList<(string name, string text)> templates)
+        public static Ship Build(string presetName, string presetText, IReadOnlyList<(string name, string text)> blockTypes)
         {
-            var texts = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var (name, text) in templates)
-                if (!texts.TryAdd(name, text))
-                    throw new ArgumentException($"이름이 같은 형판이 둘 있다: '{name}'. 프리셋이 형판을 파일 이름으로 찾으므로 유일해야 한다");
-
-            var preset = ParsePreset(presetName, presetText, texts);
-            var ship = new Ship { PresetName = presetName };
-            var parsed = new Dictionary<string, Template>(StringComparer.Ordinal);
-            foreach (var (id, templateName, offset, line) in preset.HullBlocks)
+            var types = new Dictionary<string, BlockType>(StringComparer.Ordinal);
+            foreach (var (name, text) in blockTypes)
             {
-                if (!parsed.TryGetValue(templateName, out var t))
-                    parsed[templateName] = t = ParseTemplate(templateName, texts[templateName]);
-                // 검사의 통로 연결은 정렬 첫 통로 칸에서 시작하므로 통로 0칸이면 그보다 먼저 멈춘다(계획서 2.8절)
-                if (t.CorridorCount == 0)
-                    throw new InvalidOperationException($"프리셋 '{presetName}' {line}번째 줄: 블록 '{id}'(형판 '{t.Name}')에 통로 칸이 없음. 통로 없는 블록은 A1에서 허용하지 않는다(계획서 2.8절)");
-                if (!t.Validated)
-                {
-                    ValidateTemplate(t);
-                    ship.Warnings.AddRange(t.Warnings);
-                }
-
-                var hullBlock = new HullBlock { Id = id, Template = t, Offset = offset, PresetLine = line, Index = ship.HullBlocks.Count };
-                Place(ship, hullBlock);
+                if (types.ContainsKey(name))
+                    throw new ArgumentException($"이름이 같은 블록 종류가 둘 있다: '{name}'. 프리셋이 종류를 파일 이름으로 찾으므로 유일해야 한다");
+                types[name] = ParseBlockType(name, text);
             }
 
+            var preset = ParsePreset(presetName, presetText, types);
+            var ship = new Ship { PresetName = presetName };
+            foreach (var (id, typeName, origin, rotation, line) in preset.HullBlocks)
+                Place(ship, new HullBlock { Id = id, Type = types[typeName], Origin = origin, Rotation = rotation, PresetLine = line, Index = ship.HullBlocks.Count });
+
+            CheckContiguous(ship);
+
             ship.Start = preset.Start;
-            if (!ship.KindOf.TryGetValue(preset.Start, out var startKind) || startKind != CellKind.Corridor)
-                throw new InvalidOperationException($"프리셋 '{presetName}' {preset.StartLine}번째 줄: 시작 칸 {preset.Start}이 통로 칸이 아니다");
+            if (!ship.KindOf.TryGetValue(preset.Start, out var startKind))
+                throw new InvalidOperationException($"프리셋 '{presetName}' {preset.StartLine}번째 줄: 시작 칸 {preset.Start}이 배 밖이다");
+            if (startKind != CellKind.Pressurized)
+                throw new InvalidOperationException($"프리셋 '{presetName}' {preset.StartLine}번째 줄: 시작 칸 {preset.Start}이 블록 '{ship.OwnerOf[preset.Start].Id}'의 설비 칸이다. 가압 칸이어야 한다");
 
             ComputeJoints(ship);
             FillJointDefaults(ship);
-            ValidateShip(ship);
+            ComputeReach(ship);
             return ship;
+        }
+
+        /// <summary>회전 전 자기 좌표 (u, v)를 회전한 경계 상자 안 좌표로 바꾼다. 90도 시계 방향 한 번이 (u, v)→(v, w−1−u)(2.4절).</summary>
+        public static Vector2Int Rotate(Vector2Int c, int rotation)
+        {
+            // 공개 메서드라 파서를 거치지 않은 호출도 들어올 수 있다. 범위 밖 회전을 0으로 조용히 돌려주면 틀린 배가 만들어진다
+            if (rotation < 0 || rotation > 270 || rotation % 90 != 0)
+                throw new ArgumentOutOfRangeException(nameof(rotation), rotation, "회전은 0, 90, 180, 270 중 하나여야 한다(계획서 2.4절)");
+            int w = TypeWidth, h = TypeHeight;
+            for (int i = 0; i < rotation / 90; i++)
+            {
+                c = new Vector2Int(c.y, w - 1 - c.x);
+                (w, h) = (h, w);
+            }
+            return c;
         }
 
         static void Place(Ship ship, HullBlock hullBlock)
         {
-            var t = hullBlock.Template;
+            var t = hullBlock.Type;
             var cells = new List<Vector2Int>(t.Cells.Keys);
             cells.Sort(CompareCells);
             foreach (var local in cells)
             {
-                var c = local + hullBlock.Offset;
+                var c = Rotate(local, hullBlock.Rotation) + hullBlock.Origin;
                 if (ship.OwnerOf.TryGetValue(c, out var other))
-                    throw new InvalidOperationException($"프리셋 '{ship.PresetName}' {hullBlock.PresetLine}번째 줄: 블록 겹침. 배 칸 {c}에 블록 '{other.Id}'와 '{hullBlock.Id}'가 둘 다 있다");
+                    throw new InvalidOperationException($"프리셋 '{ship.PresetName}' {hullBlock.PresetLine}번째 줄: 블록 겹침. 배 칸 {c}에 블록 '{other.Id}'({other.PresetLine}번째 줄)와 '{hullBlock.Id}'가 둘 다 있다");
                 ship.OwnerOf[c] = hullBlock;
                 ship.KindOf[c] = t.Cells[local];
                 if (t.Roles.TryGetValue(local, out var role)) ship.RoleOf[c] = role;
             }
-            foreach (var block in t.Blocks)
-                foreach (var (door, front) in block.Doors)
-                    ship.Doors.Add((door + hullBlock.Offset, front + hullBlock.Offset));
-            foreach (var k in t.Barriers)
-                ship.InnerBarriers.Add(new EdgeKey(k.x + hullBlock.Offset.x, k.z + hullBlock.Offset.y, k.axis));
             ship.HullBlocks.Add(hullBlock);
         }
 
-        // 접합부 = 블록 식별자의 순서 없는 쌍마다 하나. 식별자는 서수 비교로 정렬한 "작은쪽+큰쪽"(2.5절)
+        // 붙이기 규칙 3(3.2절): 배 전체가 칸의 변 맞닿음(대각선 아님)으로 한 덩어리여야 함. 줄 순서와 무관하게 첫 블록에서 퍼진다
+        static void CheckContiguous(Ship ship)
+        {
+            var first = ship.HullBlocks[0];
+            var seed = Rotate(Vector2Int.zero, first.Rotation) + first.Origin;
+            var seen = new HashSet<Vector2Int> { seed };
+            var queue = new Queue<Vector2Int>();
+            queue.Enqueue(seed);
+            while (queue.Count > 0)
+            {
+                var c = queue.Dequeue();
+                foreach (var d in Dirs)
+                    if (ship.OwnerOf.ContainsKey(c + d) && seen.Add(c + d)) queue.Enqueue(c + d);
+            }
+            if (seen.Count == ship.OwnerOf.Count) return;
+            // 블록 하나의 칸은 꽉 찬 직사각형이라 한 칸이 안 닿으면 그 블록 전체가 안 닿는다
+            foreach (var hullBlock in ship.HullBlocks)
+                if (!seen.Contains(Rotate(Vector2Int.zero, hullBlock.Rotation) + hullBlock.Origin))
+                    throw new InvalidOperationException($"프리셋 '{ship.PresetName}' {hullBlock.PresetLine}번째 줄: 블록 '{hullBlock.Id}'가 첫 블록 '{first.Id}'의 덩어리와 변으로 맞닿지 않는다. 배는 칸의 변 맞닿음으로 한 덩어리여야 한다(계획서 3.2절 규칙 3)");
+            // 위 주석의 논리상 여기까지 오면 불변식이 깨진 것이다. 조용히 끝내지 않고 드러낸다
+            throw new InvalidOperationException($"프리셋 '{ship.PresetName}': 닿지 않은 칸이 있는데 그 칸이 속한 블록을 찾지 못했다(불변식 위반)");
+        }
+
+        static string JointId(HullBlock p, HullBlock q) =>
+            string.CompareOrdinal(p.Id, q.Id) < 0 ? $"{p.Id}+{q.Id}" : $"{q.Id}+{p.Id}";
+
+        // 접합부 = 블록 식별자의 순서 없는 쌍마다 하나. 식별자는 서수 비교로 정렬한 "작은쪽+큰쪽"
         static void ComputeJoints(Ship ship)
         {
             var cells = new List<Vector2Int>(ship.OwnerOf.Keys);
@@ -176,50 +193,72 @@ namespace SpaceOdyssey.Blockout
         }
 
         /// <summary>
-        /// 접합 변 기본값 채우기(2.5절 쓰기 경로 4): 양쪽이 가압 칸이고 기록이 없는 접합 변에 표의 기본값을 쓴다.
-        /// 이미 기록이 있는 변은 건드리지 않는다. 통로↔통로 차단막, 통로↔방칸 벽, 방칸↔방칸 열린 변(명시 기록).
+        /// 접합 변 기본값 채우기: 양쪽이 가압 칸이고 기록이 없는 접합 변을 열린 변으로 명시 기록한다(계획서 2.2절, 8.1절 B).
+        /// 이미 기록이 있는 변은 건드리지 않는다.
         /// </summary>
-        public static void FillJointDefaults(Ship ship)
+        static void FillJointDefaults(Ship ship)
         {
-            foreach (var joint in ship.Joints.Values)
-                foreach (var e in joint.Edges)
-                {
-                    if (!ship.IsPressurized(e.CellA) || !ship.IsPressurized(e.CellB) || joint.States.ContainsKey(e)) continue;
-                    var ka = ship.KindOf[e.CellA];
-                    var kb = ship.KindOf[e.CellB];
-                    joint.States[e] = ka == CellKind.Corridor && kb == CellKind.Corridor ? SeamEdge.Barrier
-                        : ka == CellKind.Room && kb == CellKind.Room ? SeamEdge.Open
-                        : SeamEdge.Wall;
-                }
-        }
-
-        static void ValidateShip(Ship ship)
-        {
-            string where = $"배(프리셋 '{ship.PresetName}')";
             foreach (var joint in ship.Joints.Values)
                 foreach (var e in joint.Edges)
                     if (ship.IsPressurized(e.CellA) && ship.IsPressurized(e.CellB) && !joint.States.ContainsKey(e))
-                        throw new InvalidOperationException($"{where} 접합부 {joint.Id}의 가압↔가압 접합 변 {e}에 기록이 없다(기본값 채우기를 거치지 않음)");
+                        joint.States[e] = SeamEdge.Open;
+        }
 
-            var corridor = new HashSet<Vector2Int>();
-            foreach (var (c, k) in ship.KindOf) if (k == CellKind.Corridor) corridor.Add(c);
-            var fronts = new HashSet<Vector2Int>();
-            foreach (var (_, front) in ship.Doors) fronts.Add(front);
-            // 배 전체에서 다시 돌림: 블록을 붙이면 경계에 있던 통로 끝이 더는 우주에 닿지 않아 앵커 자격을 잃는다(3.3절)
-            CheckCorridors(where, corridor, c => ship.OwnerOf.ContainsKey(c), fronts);
+        // 도달(3.1절): 같은 블록의 가압 2×2는 항상 이어지고, 블록 사이는 접합 변이 벽이 아니면 이어진다(차단막은 지나감).
+        // 시작 칸에서 닿지 않는 가압 칸 덩어리는 예외가 아니라 고립 가압구역으로 돌려준다. 붙이기는 연결을 강제하지 않는 것이 계획서 3.2절의 규칙이다
+        static void ComputeReach(Ship ship)
+        {
+            ship.Reachable.UnionWith(Flood(ship, ship.Start));
+            var rest = new List<Vector2Int>();
+            foreach (var (c, k) in ship.KindOf)
+                if (k == CellKind.Pressurized && !ship.Reachable.Contains(c)) rest.Add(c);
+            rest.Sort(CompareCells);
+            var assigned = new HashSet<Vector2Int>();
+            foreach (var c in rest)
+            {
+                if (assigned.Contains(c)) continue;
+                var zone = Flood(ship, c);
+                assigned.UnionWith(zone);
+                zone.Sort(CompareCells);
+                ship.IsolatedZones.Add(zone);
+            }
+        }
+
+        static List<Vector2Int> Flood(Ship ship, Vector2Int seed)
+        {
+            var seen = new HashSet<Vector2Int> { seed };
+            var order = new List<Vector2Int> { seed };
+            var queue = new Queue<Vector2Int>();
+            queue.Enqueue(seed);
+            while (queue.Count > 0)
+            {
+                var c = queue.Dequeue();
+                foreach (var d in Dirs)
+                {
+                    var n = c + d;
+                    if (!ship.IsPressurized(n) || seen.Contains(n)) continue;
+                    var (p, q) = (ship.OwnerOf[c], ship.OwnerOf[n]);
+                    // 블록 사이 가압↔가압 변은 기본값 채우기가 모두 기록했으므로 기록이 없으면 KeyNotFoundException으로 드러난다
+                    if (p != q && ship.Joints[JointId(p, q)].States[EdgeKey.Between(c, n)] == SeamEdge.Wall) continue;
+                    seen.Add(n);
+                    order.Add(n);
+                    queue.Enqueue(n);
+                }
+            }
+            return order;
         }
 
         // ───────────────────────── 프리셋 ─────────────────────────
 
         sealed class Preset
         {
-            public readonly List<(string id, string template, Vector2Int offset, int line)> HullBlocks = new();
+            public readonly List<(string id, string type, Vector2Int origin, int rotation, int line)> HullBlocks = new();
             public Vector2Int Start;
             public int StartLine;
         }
 
-        // 줄 문법은 계획서 2.6절. 오류 줄 번호는 주석과 빈 줄을 세는 파일 줄 번호다
-        static Preset ParsePreset(string presetName, string text, Dictionary<string, string> templates)
+        // 줄 문법은 계획서 2.3절. 오류 줄 번호는 주석과 빈 줄을 세는 파일 줄 번호다
+        static Preset ParsePreset(string presetName, string text, Dictionary<string, BlockType> types)
         {
             var preset = new Preset();
             var ids = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -234,13 +273,16 @@ namespace SpaceOdyssey.Blockout
                 switch (w[0])
                 {
                     case "block":
-                        if (w.Length != 5) throw new FormatException($"{at}: block 줄은 'block <식별자> <형판이름> <x> <z>' 다섯 단어여야 한다(지금 {w.Length}개)");
+                        if (w.Length != 6) throw new FormatException($"{at}: block 줄은 'block <식별자> <종류이름> <x> <z> <회전>' 여섯 단어여야 한다(지금 {w.Length}개)");
                         if (ids.TryGetValue(w[1], out int prev)) throw new FormatException($"{at}: 블록 식별자 '{w[1]}'가 {prev}번째 줄과 겹친다");
-                        // 접합부 식별자가 "작은쪽+큰쪽"이라 '+'가 식별자에 있으면 서로 다른 두 쌍이 같은 접합부 이름이 되어 변이 섞임(리뷰 지적 1)
+                        // 접합부 식별자가 "작은쪽+큰쪽"이라 '+'가 식별자에 있으면 서로 다른 두 쌍이 같은 접합부 이름이 되어 변이 섞임
                         if (w[1].Contains('+')) throw new FormatException($"{at}: 블록 식별자 '{w[1]}'에 '+'가 있다. 접합부 식별자가 '작은쪽+큰쪽'이라 '+'를 쓸 수 없다");
-                        if (!templates.ContainsKey(w[2])) throw new FormatException($"{at}: 알 수 없는 형판 이름 '{w[2]}'. 형판 목록에 그 이름의 텍스트가 없다");
+                        if (!types.ContainsKey(w[2])) throw new FormatException($"{at}: 알 수 없는 종류 이름 '{w[2]}'. 블록 종류 목록에 그 이름의 텍스트가 없다");
+                        int rotation = ParseInt(w[5], at);
+                        if (rotation is not (0 or 90 or 180 or 270))
+                            throw new FormatException($"{at}: 회전 '{w[5]}'는 0, 90, 180, 270 중 하나가 아니다(계획서 2.3절)");
                         ids[w[1]] = lineNo;
-                        preset.HullBlocks.Add((w[1], w[2], new Vector2Int(ParseInt(w[3], at), ParseInt(w[4], at)), lineNo));
+                        preset.HullBlocks.Add((w[1], w[2], new Vector2Int(ParseInt(w[3], at), ParseInt(w[4], at)), rotation, lineNo));
                         break;
                     case "start":
                         if (w.Length != 3) throw new FormatException($"{at}: start 줄은 'start <x> <z>' 세 단어여야 한다(지금 {w.Length}개)");
@@ -249,8 +291,8 @@ namespace SpaceOdyssey.Blockout
                         preset.StartLine = lineNo;
                         break;
                     default:
-                        // module 줄은 A2, 접합 변 덮어쓰기 줄은 B1a에서 생긴다. A1에서는 알 수 없는 줄 종류다
-                        throw new FormatException($"{at}: 알 수 없는 줄 종류 '{w[0]}'(A1은 block, start만 받는다)");
+                        // module 줄은 N3, 접합 변 덮어쓰기 줄은 그 뒤 단계에서 생긴다. N1에서는 알 수 없는 줄 종류다
+                        throw new FormatException($"{at}: 알 수 없는 줄 종류 '{w[0]}'(N1은 block, start만 받는다)");
                 }
             }
             if (preset.HullBlocks.Count == 0) throw new FormatException($"프리셋 '{presetName}'에 block 줄이 없다");
@@ -261,286 +303,95 @@ namespace SpaceOdyssey.Blockout
         static int ParseInt(string word, string at) =>
             int.TryParse(word, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int v)
                 ? v
-                : throw new FormatException($"{at}: '{word}'는 정수 좌표가 아니다");
+                : throw new FormatException($"{at}: '{word}'는 정수가 아니다");
 
-        // ───────────────────────── 형판 ─────────────────────────
+        // ───────────────────────── 블록 종류 ─────────────────────────
 
-        // 글자 대응표는 계획서 2.7절 그대로. 표 밖의 글자는 전부 예외(A0 격자의 대문자 포함)
-        static Template ParseTemplate(string name, string text)
+        // 글자 표와 검사는 계획서 2.5절 그대로. 표 밖의 글자('.' 포함)는 전부 예외
+        static BlockType ParseBlockType(string name, string text)
         {
             var rows = new List<(string row, int fileLine)>();
             var lines = text.Split('\n');
             for (int i = 0; i < lines.Length; i++)
             {
                 var line = lines[i].TrimEnd('\r');
-                if (line.Length == 0 || line[0] == ';') continue;
+                if (line.Trim().Length == 0 || line[0] == ';') continue;
                 rows.Add((line, i + 1));
             }
-            if (rows.Count == 0) throw new FormatException($"형판 '{name}'에 격자 줄이 없다");
+            if (rows.Count != TypeHeight)
+                throw new FormatException(rows.Count > TypeHeight
+                    ? $"블록 종류 '{name}' {rows[TypeHeight].fileLine}번째 줄: 격자 줄이 {rows.Count}개다. {TypeHeight}줄이어야 한다(3×5)"
+                    : rows.Count == 0
+                        ? $"블록 종류 '{name}': 격자 줄이 하나도 없다. {TypeHeight}줄이어야 한다(3×5)"
+                        : $"블록 종류 '{name}': 격자 줄이 {rows.Count}개다(마지막 격자 줄 {rows[^1].fileLine}번째 줄). {TypeHeight}줄이어야 한다(3×5)");
 
-            var t = new Template(name);
-            int width = rows[0].row.Length;
+            var t = new BlockType(name);
+            var fileLineOfV = new int[TypeHeight];
             for (int i = 0; i < rows.Count; i++)
             {
                 var (row, fileLine) = rows[i];
-                if (row.Length != width)
-                    throw new FormatException($"형판 '{name}' {fileLine}번째 줄의 길이({row.Length})가 첫 격자 줄({width})과 다르다");
-                int z = rows.Count - 1 - i;
-                t.FileLineOfZ[z] = fileLine;
-                for (int x = 0; x < row.Length; x++)
+                if (row.Length != TypeWidth)
+                    throw new FormatException($"블록 종류 '{name}' {fileLine}번째 줄: 길이가 {row.Length}다. {TypeWidth}글자여야 한다(3×5)");
+                int v = TypeHeight - 1 - i;   // 첫 줄이 위쪽(+z)
+                fileLineOfV[v] = fileLine;
+                for (int u = 0; u < row.Length; u++)
                 {
-                    var c = new Vector2Int(x, z);
-                    char ch = row[x];
-                    switch (ch)
+                    var c = new Vector2Int(u, v);
+                    switch (row[u])
                     {
-                        case '.': break;
+                        case 'o': t.Cells[c] = CellKind.Pressurized; break;
                         case '#': AddStructure(t, c, StructureRole.Fill); break;
                         case '%': AddStructure(t, c, StructureRole.Armor); break;
                         case '~': AddStructure(t, c, StructureRole.Tank); break;
                         case '^': AddStructure(t, c, StructureRole.Engine); break;
-                        case '+': t.Cells[c] = CellKind.Corridor; break;
-                        case '|': t.Cells[c] = CellKind.Corridor; t.Barriers.Add(new EdgeKey(x, z, 0)); break;
-                        case '-': t.Cells[c] = CellKind.Corridor; t.Barriers.Add(new EdgeKey(x, z, 1)); break;
-                        case 'o': t.Cells[c] = CellKind.Room; break;
-                        case 'd': t.Cells[c] = CellKind.Room; t.DoorCells.Add(c); break;
-                        case '@':
-                            throw new FormatException($"형판 '{name}' {fileLine}번째 줄 {x + 1}번째 글자 '@': 형판에는 시작 칸을 두지 않는다. 시작 칸은 프리셋의 start 줄이 정한다(계획서 2.7절)");
                         default:
-                            throw new FormatException($"형판 '{name}' {fileLine}번째 줄 {x + 1}번째 글자 '{ch}'는 알 수 없는 글자다(계획서 2.7절 글자 대응표 밖)");
+                            throw new FormatException($"블록 종류 '{name}' {fileLine}번째 줄 {u + 1}번째 글자 '{row[u]}'는 알 수 없는 글자다(계획서 2.5절 글자 표 o # % ~ ^ 밖)");
                     }
-                    if (ch is '+' or '|' or '-') t.CorridorCount++;
                 }
             }
+
+            // 가압 칸은 정확히 2×2 직사각형 하나여야 한다(2.5절)
+            var pressurized = new List<Vector2Int>();
+            foreach (var (c, k) in t.Cells) if (k == CellKind.Pressurized) pressurized.Add(c);
+            pressurized.Sort(CompareCells);
+            if (pressurized.Count == 0)
+                throw new FormatException($"블록 종류 '{name}' {rows[0].fileLine}~{rows[^1].fileLine}번째 줄: 가압 칸 'o'가 없다. 정확히 2×2 하나여야 한다");
+            var min = pressurized[0];
+            var max = pressurized[0];
+            foreach (var c in pressurized) { min = Vector2Int.Min(min, c); max = Vector2Int.Max(max, c); }
+            if (pressurized.Count != 4 || max - min != Vector2Int.one)
+                throw new FormatException($"블록 종류 '{name}' {fileLineOfV[max.y]}번째 줄 {min.x + 1}번째 글자부터: 가압 칸 'o' {pressurized.Count}개의 경계 상자가 {max.x - min.x + 1}×{max.y - min.y + 1}다. 정확히 2×2 직사각형 하나여야 한다");
             return t;
         }
 
-        static void AddStructure(Template t, Vector2Int c, StructureRole role)
+        static void AddStructure(BlockType t, Vector2Int c, StructureRole role)
         {
             t.Cells[c] = CellKind.Structure;
             t.Roles[c] = role;
         }
 
-        // 형판 검사: A0 검사(방 구획 모양과 규격, 문, 통로 연결, 폭, 막다른 길) + 2.7절 구멍 처리(차단막 글자, 문 둘 구획 경고)
-        static void ValidateTemplate(Template t)
-        {
-            string Where(Vector2Int c) => $"형판 '{t.Name}' {t.FileLineOfZ[c.y]}번째 줄 {c.x + 1}번째 칸";
-
-            // 방 구획: 4방향으로 이어진 방칸 덩어리 하나가 경계 상자를 꽉 채워야 직사각형이다
-            var doorSet = new HashSet<Vector2Int>(t.DoorCells);
-            var roomCells = new List<Vector2Int>();
-            foreach (var (c, k) in t.Cells) if (k == CellKind.Room) roomCells.Add(c);
-            roomCells.Sort(CompareCells);
-            var seen = new HashSet<Vector2Int>();
-            foreach (var start in roomCells)
-            {
-                if (!seen.Add(start)) continue;
-                var block = new RoomBlock { Min = start, Max = start };
-                var members = new List<Vector2Int>();
-                var stack = new Stack<Vector2Int>();
-                stack.Push(start);
-                while (stack.Count > 0)
-                {
-                    var c = stack.Pop();
-                    members.Add(c);
-                    block.Min = Vector2Int.Min(block.Min, c);
-                    block.Max = Vector2Int.Max(block.Max, c);
-                    foreach (var d in Dirs)
-                        if (t.Cells.TryGetValue(c + d, out var k) && k == CellKind.Room && seen.Add(c + d)) stack.Push(c + d);
-                }
-                int w = block.Max.x - block.Min.x + 1, h = block.Max.y - block.Min.y + 1;
-                if (w * h != members.Count)
-                    throw new InvalidOperationException($"{Where(block.Min)}부터의 방 구획이 직사각형이 아니다(경계 상자 {w}×{h}, 방칸 {members.Count}개)");
-                if (!RoomSizes.Contains((Mathf.Min(w, h), Mathf.Max(w, h))))
-                    throw new InvalidOperationException($"{Where(block.Min)}부터의 방 구획 크기 {w}×{h}는 규격(2×2, 2×3, 3×3~4×4, 4×5) 밖이다");
-
-                members.Sort(CompareCells);
-                foreach (var door in members)
-                {
-                    if (!doorSet.Contains(door)) continue;
-                    // 문 방칸은 통로 칸 하나와만 맞닿아야 문 변이 하나로 정해진다(2.7절, 자동으로 고르지 않음)
-                    var touching = new List<Vector2Int>();
-                    foreach (var d in Dirs)
-                        if (t.Cells.TryGetValue(door + d, out var k) && k == CellKind.Corridor) touching.Add(door + d);
-                    if (touching.Count != 1)
-                        throw new InvalidOperationException($"{Where(door)}의 문 방칸 'd'가 통로 칸 {touching.Count}개와 맞닿는다. 정확히 하나여야 한다");
-                    block.Doors.Add((door, touching[0]));
-                }
-                if (block.Doors.Count == 0)
-                    throw new InvalidOperationException($"{Where(block.Min)}부터의 방 구획 {w}×{h}에 문 방칸 'd'가 없다. 통로에서 들어갈 수 없다");
-                // 맞붙여 그린 두 구획이 규격 안 직사각형이 되면 한 구획으로 통과하므로 문 개수로 알린다(2.7절 구멍 가)
-                if (block.Doors.Count > 1)
-                    t.Warnings.Add($"{Where(block.Min)}부터의 방 구획 {w}×{h}에 문이 {block.Doors.Count}개 있다(문 칸 {string.Join(", ", block.Doors.ConvertAll(x => x.door.ToString()))}). 맞붙여 그린 두 구획이 하나로 읽혔을 수 있다");
-                t.Blocks.Add(block);
-            }
-
-            // 차단막 글자가 가리키는 변 너머가 같은 블록의 통로 칸이어야 한다(2.7절 구멍 다). 접합부 차단막은 자동이라 블록 밖도 안 됨
-            foreach (var k in t.Barriers)
-                if (!t.Cells.TryGetValue(k.CellB, out var kind) || kind != CellKind.Corridor)
-                    throw new InvalidOperationException($"{Where(k.CellA)}의 차단막 글자가 가리키는 변 너머 칸 {k.CellB}이 같은 블록의 통로 칸이 아니다");
-
-            var corridor = new HashSet<Vector2Int>();
-            foreach (var (c, k) in t.Cells) if (k == CellKind.Corridor) corridor.Add(c);
-            var fronts = new HashSet<Vector2Int>();
-            foreach (var b in t.Blocks) foreach (var (_, front) in b.Doors) fronts.Add(front);
-            // 블록 하나의 통로는 그 안에서 한 덩어리여야 한다(떼어 낸 블록도 혼자서 말이 되는 가방, 2.8절)
-            CheckCorridors($"형판 '{t.Name}'", corridor, c => t.Cells.ContainsKey(c), fronts);
-            t.Validated = true;
-        }
-
-        // ───────────────────────── 통로 검사 (형판과 배 전체 공용) ─────────────────────────
-
-        // 통로 연결, 폭, 막다른 길. inHull 밖에 닿은 통로 칸은 확장 끝점이라 앵커다(3.5절)
-        static void CheckCorridors(string where, HashSet<Vector2Int> corridor, Func<Vector2Int, bool> inHull, HashSet<Vector2Int> doorFronts)
-        {
-            var sorted = new List<Vector2Int>(corridor);
-            sorted.Sort(CompareCells);
-
-            // 통로 연결: 정렬 순서 첫 통로 칸에서 퍼져서 전부 닿아야 함(3.4절의 시작 칸 정의). 차단막은 문이라 지나간다
-            var seen = new HashSet<Vector2Int> { sorted[0] };
-            var queue = new Queue<Vector2Int>();
-            queue.Enqueue(sorted[0]);
-            while (queue.Count > 0)
-            {
-                var c = queue.Dequeue();
-                foreach (var d in Dirs)
-                    if (corridor.Contains(c + d) && seen.Add(c + d)) queue.Enqueue(c + d);
-            }
-            if (seen.Count != corridor.Count)
-            {
-                var lost = sorted.Find(c => !seen.Contains(c));
-                throw new InvalidOperationException($"{where}: 통로가 끊겨 있다. {corridor.Count - seen.Count}칸이 나머지와 이어지지 않음(첫 칸 {lost})");
-            }
-
-            // 통로 폭: 3×3이 통째로 통로면 폭 3 이상. 간선은 2칸까지(3.2절)
-            foreach (var c in sorted)
-                if (IsFullBlock(corridor, c, 3))
-                    throw new InvalidOperationException($"{where}: 통로가 {c}에서 폭 3 이상이다. 간선은 2칸, 지선은 1칸");
-
-            var anchors = new HashSet<Vector2Int>(doorFronts);
-            foreach (var c in sorted)
-                foreach (var d in Dirs)
-                    if (!inHull(c + d)) anchors.Add(c);
-            var ends = DeadEnds(corridor, sorted, anchors);
-            if (ends.Count > 0)
-            {
-                var (a, b) = ends[0];
-                throw new InvalidOperationException(a == b
-                    ? $"{where}: 폭 1 통로가 {a}에서 앵커 없이 끝난다(막다른 길)"
-                    : $"{where}: 폭 2 통로가 {a}, {b}에서 앵커 없이 끝난다(막다른 길)");
-            }
-        }
-
-        // 막다른 길 판정은 A0 근사를 그대로 옮긴 것이며 B1a에서 정식 판정으로 바꾼다(계획서 3.3절. 고리 모양 막다른 가지를 못 잡음).
-        // 끝 모양 두 가지만 본다: 통로 이웃이 하나 이하인 폭 1 끝(a == b로 돌려줌), 나란한 두 칸이 같은 쪽으로 막히고 뒤로만 이어지는 폭 2 끝
-        static List<(Vector2Int a, Vector2Int b)> DeadEnds(HashSet<Vector2Int> corridor, List<Vector2Int> sorted, HashSet<Vector2Int> anchors)
-        {
-            var ends = new List<(Vector2Int, Vector2Int)>();
-            foreach (var c in sorted)
-            {
-                if (anchors.Contains(c)) continue;
-                int n = 0;
-                foreach (var d in Dirs) if (corridor.Contains(c + d)) n++;
-                if (n <= 1) { ends.Add((c, c)); continue; }
-
-                // 폭 2 끝: c와 옆 칸 p가 나란히 앞(f)이 막혔고, 뒤로만 이어지고, 바깥 옆이 둘 다 막힌 모양
-                foreach (var f in Dirs)
-                {
-                    var s = new Vector2Int(f.y, -f.x);
-                    foreach (var side in new[] { s, -s })
-                    {
-                        var p = c + side;
-                        if (!corridor.Contains(p) || anchors.Contains(p)) continue;
-                        if (corridor.Contains(c + f) || corridor.Contains(p + f)) continue;
-                        if (!corridor.Contains(c - f) || !corridor.Contains(p - f)) continue;
-                        if (corridor.Contains(c - side) || corridor.Contains(p + side)) continue;
-                        ends.Add((c, p));
-                    }
-                }
-            }
-            return ends;
-        }
-
-        static bool IsFullBlock(HashSet<Vector2Int> set, Vector2Int origin, int size)
-        {
-            for (int dx = 0; dx < size; dx++)
-                for (int dz = 0; dz < size; dz++)
-                    if (!set.Contains(origin + new Vector2Int(dx, dz))) return false;
-            return true;
-        }
-
-        /// <summary>2×2가 통째로 통로인 묶음에 들어가는 칸 = 간선(3.3절: 폭을 보고 계산).</summary>
-        public static bool IsTrunk(HashSet<Vector2Int> corridor, Vector2Int c)
-        {
-            for (int dx = -1; dx <= 0; dx++)
-                for (int dz = -1; dz <= 0; dz++)
-                {
-                    var o = c + new Vector2Int(dx, dz);
-                    if (corridor.Contains(o) && corridor.Contains(o + Vector2Int.right) &&
-                        corridor.Contains(o + Vector2Int.up) && corridor.Contains(o + Vector2Int.one)) return true;
-                }
-            return false;
-        }
-
         // ───────────────────────── 통계 ─────────────────────────
 
-        /// <summary>콘솔용 통계(11절 A1 수용 기준의 값들). 판정은 하지 않고 통과선만 같이 적는다.</summary>
+        /// <summary>콘솔용 통계(6장 N1 수용 기준의 값들): 블록 수, 접합부 수, 접합 변 수(가압↔가압 따로), 고립 가압구역 수, 가압 비율.</summary>
         public static string Describe(Ship ship)
         {
-            var corridor = new HashSet<Vector2Int>();
             int pressurized = 0;
-            foreach (var (c, k) in ship.KindOf)
-            {
-                if (k == CellKind.Corridor) corridor.Add(c);
-                if (k != CellKind.Structure) pressurized++;
-            }
+            foreach (var k in ship.KindOf.Values) if (k == CellKind.Pressurized) pressurized++;
+            int edges = 0, ppEdges = 0;
+            foreach (var joint in ship.Joints.Values) { edges += joint.Edges.Count; ppEdges += joint.States.Count; }
 
             var sb = new StringBuilder();
-            sb.AppendLine($"[ShipNetworkRules] 프리셋 '{ship.PresetName}': 블록 {ship.HullBlocks.Count}개, 접합부 {ship.Joints.Count}개, 선체 {ship.KindOf.Count}칸, 가압 비율 {pressurized / (float)ship.KindOf.Count:P1}");
-
-            int trunkDirect = 0;
+            sb.AppendLine($"[ShipNetworkRules] 프리셋 '{ship.PresetName}': 블록 {ship.HullBlocks.Count}개, 접합부 {ship.Joints.Count}개, 접합 변 {edges}개(가압↔가압 {ppEdges}개), 고립 가압구역 {ship.IsolatedZones.Count}개, 선체 {ship.KindOf.Count}칸, 가압 비율 {pressurized / (float)ship.KindOf.Count:P1}");
             foreach (var hullBlock in ship.HullBlocks)
-            {
-                int n0 = 0, n1 = 0, n2 = 0;
-                foreach (var k in hullBlock.Template.Cells.Values)
-                    if (k == CellKind.Corridor) n0++; else if (k == CellKind.Room) n1++; else n2++;
-                sb.AppendLine($"  블록 {hullBlock.Id}(형판 {hullBlock.Template.Name}, 위치 {hullBlock.Offset}): 통로 {n0}, 방칸 {n1}(방 구획 {hullBlock.Template.Blocks.Count}개), 설비 {n2}");
-                foreach (var block in hullBlock.Template.Blocks)
-                    if (block.Doors.Exists(x => IsTrunk(corridor, x.front + hullBlock.Offset))) trunkDirect++;
-            }
-
-            int jointBarriers = 0;
+                sb.AppendLine($"  블록 {hullBlock.Id}(종류 {hullBlock.Type.Name}, 위치 {hullBlock.Origin}, 회전 {hullBlock.Rotation})");
             foreach (var joint in ship.Joints.Values)
+                sb.AppendLine($"  접합부 {joint.Id}: 접합 변 {joint.Edges.Count}(가압↔가압 {joint.States.Count})");
+            for (int i = 0; i < ship.IsolatedZones.Count; i++)
             {
-                int cc = 0, cr = 0, rr = 0, barrier = 0;
-                foreach (var (e, state) in joint.States)
-                {
-                    var ka = ship.KindOf[e.CellA];
-                    var kb = ship.KindOf[e.CellB];
-                    if (ka == CellKind.Corridor && kb == CellKind.Corridor) cc++;
-                    else if (ka == CellKind.Room && kb == CellKind.Room) rr++;
-                    else cr++;
-                    if (state == SeamEdge.Barrier) barrier++;
-                }
-                jointBarriers += barrier;
-                sb.AppendLine($"  접합부 {joint.Id}: 접합 변 {joint.Edges.Count}(가압↔가압 {joint.States.Count} = 통로↔통로 {cc}, 통로↔방칸 {cr}, 방칸↔방칸 {rr}), 차단막 {barrier}");
+                var zone = ship.IsolatedZones[i];
+                sb.AppendLine($"  고립 가압구역 {i + 1}: {zone.Count}칸, 첫 칸 {zone[0]}(블록 {ship.OwnerOf[zone[0]].Id})");
             }
-            sb.AppendLine($"  차단막 변: 접합부 {jointBarriers} + 통로 중간 {ship.InnerBarriers.Count} = {jointBarriers + ship.InnerBarriers.Count}");
-            sb.AppendLine($"  간선 직결 방 구획: {trunkDirect} (통과선 3 이하)");
-
-            // 방 문 앞이 아닌 통로 끝 모양 칸 중 우주에 닿는 칸. 우주 닿음을 앵커로 치지 않고 끝 모양만 본다.
-            // 막다른 길 근사(DeadEnds의 끝 모양 두 가지)에 기대므로 이 통계도 근사임. B1a에서 막다른 길 판정과 같이 정식으로 교체함
-            var sorted = new List<Vector2Int>(corridor);
-            sorted.Sort(CompareCells);
-            var fronts = new HashSet<Vector2Int>();
-            foreach (var (_, front) in ship.Doors) fronts.Add(front);
-            var endCells = new HashSet<Vector2Int>();
-            foreach (var (a, b) in DeadEnds(corridor, sorted, fronts)) { endCells.Add(a); endCells.Add(b); }
-            int spaceEnds = 0;
-            foreach (var c in endCells)
-                foreach (var d in Dirs)
-                    if (!ship.OwnerOf.ContainsKey(c + d)) { spaceEnds++; break; }
-            sb.Append($"  문 없이 우주에 닿는 통로 끝 칸: {spaceEnds} (통과선 0)");
-            return sb.ToString();
+            return sb.ToString().TrimEnd();
         }
     }
 }

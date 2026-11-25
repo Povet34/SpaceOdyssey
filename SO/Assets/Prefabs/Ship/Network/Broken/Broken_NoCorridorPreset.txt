@@ -1,4 +1,0 @@
-; 일부러 깨뜨린 확인용 프리셋: 통로 칸이 0개인 형판을 씀.
-; 확인 방법: 씬 미리보기의 Preset을 이 파일로 바꾸고 Templates에 Broken_NoCorridor를 임시로 추가한 뒤 Play(안 넣으면 '알 수 없는 형판 이름'이 먼저 남). 평소 씬은 이것을 가리키지 않음.
-block tank Broken_NoCorridor 0 0
-start 1 1

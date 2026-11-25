@@ -1,0 +1,20 @@
+; 블록 격자 N1 첫 배 프리셋. 계획서 Docs/ShipBlockGridPlan.md 2.3~2.4절, 6장 N1.
+; block <식별자> <종류이름> <x> <z> <회전> : 회전(0, 90, 180, 270도 시계 방향)한 경계 상자의 왼쪽 아래 칸이 놓일 배 좌표
+; start <x> <z> : 시작 칸(배 좌표, 가압 칸). ; 로 시작하는 줄은 주석.
+; 배 모양: 엔진(e1)이 왼쪽 끝, 가압 2x2가 계단처럼 오른쪽 위로 이어지는 울퉁불퉁한 사선 배. 블록 13개.
+; 폭 2칸(나란히 닿음): e1+y1, z1+w1, u1+v1. 폭 1칸(어긋나게 닿음): y1+z1, w1+v1, u1+t1, t1+s1, s1+r1, r1+q1, q1+p1, p1+tank, e1+leaf.
+; 잎 방(한 곳에만 이어진 가압 2x2): leaf(엔진 아래), tank(오른쪽 위 끝).
+block e1 Blk_Engine 0 0 270
+block y1 Blk_EndL 5 0 0
+block z1 Blk_EndL 5 -5 180
+block w1 Blk_EndL 8 -2 0
+block v1 Blk_EndL 8 -7 180
+block u1 Blk_EndL 11 -5 90
+block t1 Blk_EndR 11 -2 0
+block s1 Blk_EndL 14 -2 90
+block r1 Blk_EndR 14 1 0
+block q1 Blk_EndL 17 1 90
+block p1 Blk_EndR 17 4 0
+block tank Blk_Tank 20 4 0
+block leaf Blk_OffR 0 -3 270
+start 3 0

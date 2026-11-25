@@ -1,0 +1,17 @@
+; 고립 가압구역 확인용 프리셋: Ship01_N1에 블록 iso 하나를 더함. iso는 설비 칸끼리만 배에 닿아서 가압 2x2가 시작 칸과 이어지지 않음.
+; 확인 방법: 씬 미리보기의 Preset을 이 파일로 바꾸고 Play. 예외 없이 열리고, 콘솔에 고립 가압구역 1개, iso의 가압 2x2가 붉게 보여야 함.
+block e1 Blk_Engine 0 0 270
+block y1 Blk_EndL 5 0 0
+block z1 Blk_EndL 5 -5 180
+block w1 Blk_EndL 8 -2 0
+block v1 Blk_EndL 8 -7 180
+block u1 Blk_EndL 11 -5 90
+block t1 Blk_EndR 11 -2 0
+block s1 Blk_EndL 14 -2 90
+block r1 Blk_EndR 14 1 0
+block q1 Blk_EndL 17 1 90
+block p1 Blk_EndR 17 4 0
+block tank Blk_Tank 20 4 0
+block leaf Blk_OffR 0 -3 270
+block iso Blk_OffL 11 -8 90
+start 3 0
