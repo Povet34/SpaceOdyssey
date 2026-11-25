@@ -1,0 +1,5 @@
+; 일부러 깨뜨린 확인용 프리셋: 가압 칸끼리 안 이어진 블록 종류 Blk_BrokenPressSplit를 씀.
+; 확인 방법: 씬 미리보기의 Preset을 이 파일로 바꾸고 블록 종류 목록에 Broken/Blk_BrokenPressSplit를 더한 뒤 Play(또는 ShipNetworkRules.Build를 직접 호출). 블록 종류 파일의 줄 번호가 담긴 예외로 멈춰야 함. 평소 씬은 이것을 가리키지 않음.
+block a Blk_EndL 0 0 0
+block b Blk_BrokenPressSplit 3 0 0
+start 0 0

@@ -1,0 +1,33 @@
+; 블록 격자 N1b 배 프리셋: 여러 모양 조각으로 만든 배. 계획서 Docs/ShipBlockGridPlan.md 10장(10.3, 10.5절)과 사용자 추가 제약(최소 블록 2x2, 모든 블록에 가압 칸), 2.3~2.4절.
+; block <식별자> <종류이름> <x> <z> <회전> : 회전(0, 90, 180, 270도 시계 방향)한 경계 상자의 왼쪽 아래 칸이 놓일 배 좌표
+; start <x> <z> : 시작 칸(배 좌표, 가압 칸). ; 로 시작하는 줄은 주석.
+; 배 모양: 왼쪽 끝 엔진 방(e1)에서 L자, T자, ㄱ자, 2x2 방 조각의 가압 칸이 이어져 오른쪽으로 꺾이며 통로를 이루고, 3x5 조각이 방과 기계로 위아래에 매달린 길쭉하고 울퉁불퉁한 배.
+; 고리: 가압만 L자 넷(r1~r4)이 탱크 소형(hole)을 둘러싼 통로 고리.
+; 폭 2칸(나란히 닿음): p2a+roomE, p2b+roomF, p2c+tank. 폭 1칸(한 칸 폭으로 닿음): c1+e1, c2+r3, c4+p2b, c6+p2c 등.
+; 잎 방(한 곳에만 이어진 3x5 방): roomN(고리 위), leafS(아래 갈래 끝), tank(위 갈래 끝). 최소 블록(2x2, 가압 1칸): mn1, mn2.
+block e1 Blk_Engine 0 0 270
+block es1 Blk_EngineS 3 -2 90
+block c1 Blk_PT4 5 0 180
+block mn1 Blk_M2x2 6 -2 90
+block r1 Blk_PL3 8 0 0
+block r2 Blk_PL3 10 0 270
+block r3 Blk_PL3 10 2 180
+block r4 Blk_PL3 8 2 90
+block hole Blk_TankS 9 1 0
+block roomN Blk_OffL 6 4 270
+block g1 Blk_MGMirror 9 -3 0
+block c2 Blk_MG 12 0 0
+block p2a Blk_P2x2 15 1 0
+block roomE Blk_EndL 17 1 0
+block c3 Blk_M2x2L 15 -1 0
+block leafS Blk_EndR 14 -6 180
+block c4 Blk_PT4 17 -1 0
+block mn2 Blk_M2x2 20 1 0
+block p2b Blk_P2x2 20 -1 0
+block roomF Blk_EndL 22 -2 90
+block c5 Blk_MT4 22 1 180
+block p2c Blk_P2x2 24 2 0
+block tank Blk_Tank 22 4 270
+block c6 Blk_MG 26 1 0
+block m3 Blk_M2x3 29 1 0
+start 3 0

@@ -16,24 +16,25 @@ namespace SpaceOdyssey.Blockout
     public enum SeamEdge { Open, Wall }
 
     /// <summary>
-    /// 블록 격자 N1(Docs/ShipBlockGridPlan.md 6장 N1)의 규칙 계산. 장면 객체에 의존하지 않는다.
+    /// 블록 격자 N1/N1b(Docs/ShipBlockGridPlan.md 6장 N1, 10장)의 규칙 계산. 장면 객체에 의존하지 않는다.
     /// 입력은 문자열(프리셋 텍스트, 종류 이름별 블록 종류 텍스트), 출력은 칸 좌표와 종류의 평범한 C# 자료다.
-    /// 블록 종류 파서(2.5절), 프리셋 파서(2.3절), 회전 배치(2.4절), 붙이기 규칙 1~3(3.2절), 접합부 계산과 접합 변 기본값,
+    /// 블록 종류 파서(2.5절, 10.2절), 프리셋 파서(2.3절), 회전 배치(2.4절, 10.2절), 붙이기 규칙 1~3(3.2절), 접합부 계산과 접합 변 기본값,
     /// 시작 칸 기준 도달과 고립 가압구역(3.1절), 콘솔용 통계가 여기 있다.
     /// 입력은 사람이 손으로 쓴 텍스트(신뢰 경계)라서 규칙을 어기면 조용히 고치지 않고 예외로 멈춘다.
     /// </summary>
     public static class ShipNetworkRules
     {
-        /// <summary>블록 종류의 회전 전 크기(3열×5행, 계획서 2.4절).</summary>
-        public const int TypeWidth = 3, TypeHeight = 5;
+        /// <summary>블록 종류 한 변의 하한과 상한(칸). 상한은 계획서 10.2절 출발 규격, 하한은 사용자 제약(최소 블록 2×2, 1×N 조각 없음).</summary>
+        public const int MinTypeSide = 2, MaxTypeSide = 6;
 
-        /// <summary>블록 종류 하나. 좌표는 회전 전 자기 좌표 (u, v)(맨 아래 줄 첫 글자가 (0,0)).</summary>
+        /// <summary>블록 종류 하나. 좌표는 회전 전 자기 좌표 (u, v)(맨 아래 줄 첫 글자가 (0,0)). 크기는 회전 전 경계 상자(가로 Width, 세로 Height).</summary>
         public sealed class BlockType
         {
             public readonly string Name;
+            public readonly int Width, Height;
             public readonly Dictionary<Vector2Int, CellKind> Cells = new();
             public readonly Dictionary<Vector2Int, StructureRole> Roles = new();
-            public BlockType(string name) { Name = name; }
+            public BlockType(string name, int width, int height) { Name = name; Width = width; Height = height; }
         }
 
         /// <summary>배에 놓인 블록. 칸은 종류 칸을 Rotation만큼 돌린 뒤 Origin만큼 옮긴 것이다(2.4절).</summary>
@@ -113,13 +114,15 @@ namespace SpaceOdyssey.Blockout
             return ship;
         }
 
-        /// <summary>회전 전 자기 좌표 (u, v)를 회전한 경계 상자 안 좌표로 바꾼다. 90도 시계 방향 한 번이 (u, v)→(v, w−1−u)(2.4절).</summary>
-        public static Vector2Int Rotate(Vector2Int c, int rotation)
+        /// <summary>
+        /// 회전 전 자기 좌표 (u, v)를 회전한 경계 상자 안 좌표로 바꾼다. w, h는 종류의 회전 전 가로와 세로.
+        /// 90도 시계 방향 한 번이 (u, v)→(v, w−1−u)이고 크기가 w×h에서 h×w가 된다(2.4절, 10.2절).
+        /// </summary>
+        public static Vector2Int Rotate(Vector2Int c, int rotation, int w, int h)
         {
             // 공개 메서드라 파서를 거치지 않은 호출도 들어올 수 있다. 범위 밖 회전을 0으로 조용히 돌려주면 틀린 배가 만들어진다
             if (rotation < 0 || rotation > 270 || rotation % 90 != 0)
                 throw new ArgumentOutOfRangeException(nameof(rotation), rotation, "회전은 0, 90, 180, 270 중 하나여야 한다(계획서 2.4절)");
-            int w = TypeWidth, h = TypeHeight;
             for (int i = 0; i < rotation / 90; i++)
             {
                 c = new Vector2Int(c.y, w - 1 - c.x);
@@ -135,7 +138,7 @@ namespace SpaceOdyssey.Blockout
             cells.Sort(CompareCells);
             foreach (var local in cells)
             {
-                var c = Rotate(local, hullBlock.Rotation) + hullBlock.Origin;
+                var c = Rotate(local, hullBlock.Rotation, t.Width, t.Height) + hullBlock.Origin;
                 if (ship.OwnerOf.TryGetValue(c, out var other))
                     throw new InvalidOperationException($"프리셋 '{ship.PresetName}' {hullBlock.PresetLine}번째 줄: 블록 겹침. 배 칸 {c}에 블록 '{other.Id}'({other.PresetLine}번째 줄)와 '{hullBlock.Id}'가 둘 다 있다");
                 ship.OwnerOf[c] = hullBlock;
@@ -148,8 +151,16 @@ namespace SpaceOdyssey.Blockout
         // 붙이기 규칙 3(3.2절): 배 전체가 칸의 변 맞닿음(대각선 아님)으로 한 덩어리여야 함. 줄 순서와 무관하게 첫 블록에서 퍼진다
         static void CheckContiguous(Ship ship)
         {
+            // 블록의 칸 하나(자기 좌표에서 정렬 첫 칸)의 배 좌표. 종류에 '.'이 있으면 (0,0)이 칸이 아닐 수 있어서 실제 칸을 고른다
+            static Vector2Int AnyCell(HullBlock b)
+            {
+                var cells = new List<Vector2Int>(b.Type.Cells.Keys);
+                cells.Sort(CompareCells);
+                return Rotate(cells[0], b.Rotation, b.Type.Width, b.Type.Height) + b.Origin;
+            }
+
             var first = ship.HullBlocks[0];
-            var seed = Rotate(Vector2Int.zero, first.Rotation) + first.Origin;
+            var seed = AnyCell(first);
             var seen = new HashSet<Vector2Int> { seed };
             var queue = new Queue<Vector2Int>();
             queue.Enqueue(seed);
@@ -160,9 +171,9 @@ namespace SpaceOdyssey.Blockout
                     if (ship.OwnerOf.ContainsKey(c + d) && seen.Add(c + d)) queue.Enqueue(c + d);
             }
             if (seen.Count == ship.OwnerOf.Count) return;
-            // 블록 하나의 칸은 꽉 찬 직사각형이라 한 칸이 안 닿으면 그 블록 전체가 안 닿는다
+            // 블록 하나의 칸은 4방향 한 덩어리(종류 파서가 보장)라 한 칸이 안 닿으면 그 블록 전체가 안 닿는다
             foreach (var hullBlock in ship.HullBlocks)
-                if (!seen.Contains(Rotate(Vector2Int.zero, hullBlock.Rotation) + hullBlock.Origin))
+                if (!seen.Contains(AnyCell(hullBlock)))
                     throw new InvalidOperationException($"프리셋 '{ship.PresetName}' {hullBlock.PresetLine}번째 줄: 블록 '{hullBlock.Id}'가 첫 블록 '{first.Id}'의 덩어리와 변으로 맞닿지 않는다. 배는 칸의 변 맞닿음으로 한 덩어리여야 한다(계획서 3.2절 규칙 3)");
             // 위 주석의 논리상 여기까지 오면 불변식이 깨진 것이다. 조용히 끝내지 않고 드러낸다
             throw new InvalidOperationException($"프리셋 '{ship.PresetName}': 닿지 않은 칸이 있는데 그 칸이 속한 블록을 찾지 못했다(불변식 위반)");
@@ -204,7 +215,7 @@ namespace SpaceOdyssey.Blockout
                         joint.States[e] = SeamEdge.Open;
         }
 
-        // 도달(3.1절): 같은 블록의 가압 2×2는 항상 이어지고, 블록 사이는 접합 변이 벽이 아니면 이어진다(차단막은 지나감).
+        // 도달(3.1절, 10.2절): 한 블록의 가압 칸은 한 덩어리(종류 파서가 보장)라 항상 이어지고, 블록 사이는 접합 변이 벽이 아니면 이어진다(차단막은 지나감).
         // 시작 칸에서 닿지 않는 가압 칸 덩어리는 예외가 아니라 고립 가압구역으로 돌려준다. 붙이기는 연결을 강제하지 않는 것이 계획서 3.2절의 규칙이다
         static void ComputeReach(Ship ship)
         {
@@ -307,7 +318,7 @@ namespace SpaceOdyssey.Blockout
 
         // ───────────────────────── 블록 종류 ─────────────────────────
 
-        // 글자 표와 검사는 계획서 2.5절 그대로. 표 밖의 글자('.' 포함)는 전부 예외
+        // 글자 표와 검사는 계획서 10.2절(2.5절을 개정). 표 밖의 글자는 전부 예외
         static BlockType ParseBlockType(string name, string text)
         {
             var rows = new List<(string row, int fileLine)>();
@@ -318,50 +329,83 @@ namespace SpaceOdyssey.Blockout
                 if (line.Trim().Length == 0 || line[0] == ';') continue;
                 rows.Add((line, i + 1));
             }
-            if (rows.Count != TypeHeight)
-                throw new FormatException(rows.Count > TypeHeight
-                    ? $"블록 종류 '{name}' {rows[TypeHeight].fileLine}번째 줄: 격자 줄이 {rows.Count}개다. {TypeHeight}줄이어야 한다(3×5)"
-                    : rows.Count == 0
-                        ? $"블록 종류 '{name}': 격자 줄이 하나도 없다. {TypeHeight}줄이어야 한다(3×5)"
-                        : $"블록 종류 '{name}': 격자 줄이 {rows.Count}개다(마지막 격자 줄 {rows[^1].fileLine}번째 줄). {TypeHeight}줄이어야 한다(3×5)");
+            if (rows.Count == 0)
+                throw new FormatException($"블록 종류 '{name}': 격자 줄이 하나도 없다");
+            if (rows.Count > MaxTypeSide)
+                throw new FormatException($"블록 종류 '{name}' {rows[MaxTypeSide].fileLine}번째 줄: 격자 줄이 {rows.Count}개다. 한 변은 {MaxTypeSide}칸 이하여야 한다(계획서 10.2절)");
+            int width = rows[0].row.Length;
+            foreach (var (row, fileLine) in rows)
+                if (row.Length != width)
+                    throw new FormatException($"블록 종류 '{name}' {fileLine}번째 줄: 길이가 {row.Length}다. 첫 격자 줄({rows[0].fileLine}번째 줄)의 길이 {width}와 같아야 한다");
+            if (width > MaxTypeSide)
+                throw new FormatException($"블록 종류 '{name}' {rows[0].fileLine}번째 줄: 가로가 {width}칸이다. 한 변은 {MaxTypeSide}칸 이하여야 한다(계획서 10.2절)");
 
-            var t = new BlockType(name);
-            var fileLineOfV = new int[TypeHeight];
+            var t = new BlockType(name, width, rows.Count);
+            var fileLineOfV = new int[rows.Count];
             for (int i = 0; i < rows.Count; i++)
             {
                 var (row, fileLine) = rows[i];
-                if (row.Length != TypeWidth)
-                    throw new FormatException($"블록 종류 '{name}' {fileLine}번째 줄: 길이가 {row.Length}다. {TypeWidth}글자여야 한다(3×5)");
-                int v = TypeHeight - 1 - i;   // 첫 줄이 위쪽(+z)
+                int v = rows.Count - 1 - i;   // 첫 줄이 위쪽(+z)
                 fileLineOfV[v] = fileLine;
                 for (int u = 0; u < row.Length; u++)
                 {
                     var c = new Vector2Int(u, v);
                     switch (row[u])
                     {
+                        case '.': break;   // 칸 없음(L자, T자처럼 상자 안 빈 곳)
                         case 'o': t.Cells[c] = CellKind.Pressurized; break;
                         case '#': AddStructure(t, c, StructureRole.Fill); break;
                         case '%': AddStructure(t, c, StructureRole.Armor); break;
                         case '~': AddStructure(t, c, StructureRole.Tank); break;
                         case '^': AddStructure(t, c, StructureRole.Engine); break;
                         default:
-                            throw new FormatException($"블록 종류 '{name}' {fileLine}번째 줄 {u + 1}번째 글자 '{row[u]}'는 알 수 없는 글자다(계획서 2.5절 글자 표 o # % ~ ^ 밖)");
+                            throw new FormatException($"블록 종류 '{name}' {fileLine}번째 줄 {u + 1}번째 글자 '{row[u]}'는 알 수 없는 글자다(계획서 10.2절 글자 표 o # % ~ ^ . 밖)");
                     }
                 }
             }
 
-            // 가압 칸은 정확히 2×2 직사각형 하나여야 한다(2.5절)
+            string span = $"{rows[0].fileLine}~{rows[^1].fileLine}번째 줄";
+            if (t.Cells.Count == 0)
+                throw new FormatException($"블록 종류 '{name}' {span}: 칸이 하나도 없다(전부 '.')");
+            // 빈 테두리 금지(사용자 제약): 격자 가장자리 줄과 열마다 칸이 하나 이상 있어야 상자 크기가 곧 블록 크기다
+            bool RowHasCell(int v) { for (int u = 0; u < width; u++) if (t.Cells.ContainsKey(new Vector2Int(u, v))) return true; return false; }
+            bool ColumnHasCell(int u) { for (int v = 0; v < rows.Count; v++) if (t.Cells.ContainsKey(new Vector2Int(u, v))) return true; return false; }
+            if (!RowHasCell(rows.Count - 1))
+                throw new FormatException($"블록 종류 '{name}' {fileLineOfV[rows.Count - 1]}번째 줄: 맨 위 격자 줄에 칸이 없다(전부 '.'). 빈 테두리는 쓸 수 없다");
+            if (!RowHasCell(0))
+                throw new FormatException($"블록 종류 '{name}' {fileLineOfV[0]}번째 줄: 맨 아래 격자 줄에 칸이 없다(전부 '.'). 빈 테두리는 쓸 수 없다");
+            if (!ColumnHasCell(0))
+                throw new FormatException($"블록 종류 '{name}' {span} 1번째 글자: 맨 왼쪽 열에 칸이 없다(전부 '.'). 빈 테두리는 쓸 수 없다");
+            if (!ColumnHasCell(width - 1))
+                throw new FormatException($"블록 종류 '{name}' {span} {width}번째 글자: 맨 오른쪽 열에 칸이 없다(전부 '.'). 빈 테두리는 쓸 수 없다");
+            if (width < MinTypeSide || rows.Count < MinTypeSide)
+                throw new FormatException($"블록 종류 '{name}' {span}: 크기가 가로 {width}×세로 {rows.Count}다. 가로와 세로 모두 {MinTypeSide}칸 이상이어야 한다(최소 블록 {MinTypeSide}×{MinTypeSide})");
+            CheckOneLump(name, new List<Vector2Int>(t.Cells.Keys), "칸('.'이 아닌 것)", fileLineOfV);
             var pressurized = new List<Vector2Int>();
             foreach (var (c, k) in t.Cells) if (k == CellKind.Pressurized) pressurized.Add(c);
-            pressurized.Sort(CompareCells);
             if (pressurized.Count == 0)
-                throw new FormatException($"블록 종류 '{name}' {rows[0].fileLine}~{rows[^1].fileLine}번째 줄: 가압 칸 'o'가 없다. 정확히 2×2 하나여야 한다");
-            var min = pressurized[0];
-            var max = pressurized[0];
-            foreach (var c in pressurized) { min = Vector2Int.Min(min, c); max = Vector2Int.Max(max, c); }
-            if (pressurized.Count != 4 || max - min != Vector2Int.one)
-                throw new FormatException($"블록 종류 '{name}' {fileLineOfV[max.y]}번째 줄 {min.x + 1}번째 글자부터: 가압 칸 'o' {pressurized.Count}개의 경계 상자가 {max.x - min.x + 1}×{max.y - min.y + 1}다. 정확히 2×2 직사각형 하나여야 한다");
+                throw new FormatException($"블록 종류 '{name}' {span}: 가압 칸 'o'가 없다. 모든 블록에 가압 칸이 1칸 이상 있어야 한다(설비만 있는 블록은 없음)");
+            CheckOneLump(name, pressurized, "가압 칸 'o'", fileLineOfV);
             return t;
+        }
+
+        // 칸 목록이 4방향(대각선 아님)으로 한 덩어리인지 본다. 정렬 첫 칸에서 퍼져 닿지 않은 첫 칸의 줄 번호와 글자 위치로 멈춘다
+        static void CheckOneLump(string name, List<Vector2Int> cells, string what, int[] fileLineOfV)
+        {
+            cells.Sort(CompareCells);
+            var set = new HashSet<Vector2Int>(cells);
+            var seen = new HashSet<Vector2Int> { cells[0] };
+            var queue = new Queue<Vector2Int>();
+            queue.Enqueue(cells[0]);
+            while (queue.Count > 0)
+            {
+                var c = queue.Dequeue();
+                foreach (var d in Dirs)
+                    if (set.Contains(c + d) && seen.Add(c + d)) queue.Enqueue(c + d);
+            }
+            foreach (var c in cells)
+                if (!seen.Contains(c))
+                    throw new FormatException($"블록 종류 '{name}' {fileLineOfV[c.y]}번째 줄 {c.x + 1}번째 글자: {what}이 4방향으로 한 덩어리가 아니다. 이 칸은 {fileLineOfV[cells[0].y]}번째 줄 {cells[0].x + 1}번째 글자의 덩어리와 변으로 이어지지 않는다(계획서 10.2절)");
         }
 
         static void AddStructure(BlockType t, Vector2Int c, StructureRole role)

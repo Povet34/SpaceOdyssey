@@ -1175,7 +1175,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae3f0cd9c0cce58498042f021e772822, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpaceOdyssey.Blockout.NetworkGridPreview
-  <Preset>k__BackingField: {fileID: 4900000, guid: aa8437700693fa14d96b0b11a659af79, type: 3}
+  <Preset>k__BackingField: {fileID: 4900000, guid: b95f491db36edf34fb8b2c20b3a0fea7, type: 3}
   <BlockTypes>k__BackingField:
   - {fileID: 4900000, guid: 4dbb17ea535177843b14462a083895e0, type: 3}
   - {fileID: 4900000, guid: ffecb59297590ef4d96d63a2ce067d06, type: 3}
@@ -1183,6 +1183,18 @@ MonoBehaviour:
   - {fileID: 4900000, guid: 928e713fcd3e33c47be430ec866ac104, type: 3}
   - {fileID: 4900000, guid: 1c6636549b3e31d4e97dc7a71195ae09, type: 3}
   - {fileID: 4900000, guid: 11040181dc36b384c941f29d68cf8364, type: 3}
+  - {fileID: 4900000, guid: f26614ba1803cec4b90cc0c04c5f72e3, type: 3}
+  - {fileID: 4900000, guid: a986a2b18cb69d748bdc8542c4ebd895, type: 3}
+  - {fileID: 4900000, guid: a3fd6dd95141eb54db7f1e14ea7a9bd2, type: 3}
+  - {fileID: 4900000, guid: 5a17ad197dd2e7c4c85b9869ffb47054, type: 3}
+  - {fileID: 4900000, guid: 1bb2f56a481527844b06c2b6dafce492, type: 3}
+  - {fileID: 4900000, guid: 5dac307a8c86c324ba2356510ebccf8f, type: 3}
+  - {fileID: 4900000, guid: acb5aed30d0100c4195c6f84f4e5ada1, type: 3}
+  - {fileID: 4900000, guid: 40c13ca6a2ca1a344b2a7a4f276edad6, type: 3}
+  - {fileID: 4900000, guid: 7d7b747ea29eec647b93824aec3119be, type: 3}
+  - {fileID: 4900000, guid: 8e63b65e8d293324b81bd74636ee9359, type: 3}
+  - {fileID: 4900000, guid: fc6c78130ce3a9a49ba9b24ff8074a57, type: 3}
+  - {fileID: 4900000, guid: cf89b98f8cd4d9a4f956c02c13721582, type: 3}
   <Floors>k__BackingField: {fileID: 1172724552}
   <Marks>k__BackingField: {fileID: 886224900}
   <StructureParent>k__BackingField: {fileID: 1463668242}
@@ -1198,6 +1210,8 @@ MonoBehaviour:
   - {r: 0.32, g: 0.18, b: 0.1, a: 1}
   <SeamColor>k__BackingField: {r: 1, g: 0.25, b: 0.85, a: 1}
   <IsolatedColor>k__BackingField: {r: 0.95, g: 0.12, b: 0.08, a: 1}
+  <GridColor>k__BackingField: {r: 0.1, g: 0.45, b: 0.95, a: 1}
+  <GridMajorColor>k__BackingField: {r: 0.02, g: 0.18, b: 0.7, a: 1}
 --- !u!1 &2044937706
 GameObject:
   m_ObjectHideFlags: 0
