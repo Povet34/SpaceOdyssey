@@ -8,7 +8,7 @@
 
 ## 1. 한 줄 상태
 
-통로 그물 + 블록/모듈 분리 모델의 **계획서가 3차 개정까지 끝났고(구현 전. 사용자 승인은 받았고 critic 비평도 반영함)**, 구현은 A0(통로 그물 판만 깔기)까지 끝남. **다음은 A1(블록 판) 구현이고, 사용자 승인을 받음**(2026-11-25. 순서: 계획서 critic 비평 → A0 커밋 → SampleScene 정리 커밋 → A1). A0 결과물은 커밋함(8절).
+통로 그물 + 블록/모듈 분리 모델의 **계획서가 3차 개정까지 끝났고(구현 전. 사용자 승인은 받았고 critic 비평도 반영함)**, 구현은 **A1(블록 판)까지 끝났고 독립 리뷰를 통과함**(2026-11-25). **지금은 사용자의 A1 화면 판정을 기다리는 중**이고, 판정이 나오면 A2(모듈 회색 상자)로 감. A0와 A1은 각각 커밋했음(8절).
 
 ---
 
@@ -44,7 +44,7 @@
 2. **`ShipBuildDesign.md`**: 0.1~0.6절이 결정 기록, 13장은 옛 "이어서 할 일"(2m 칸 기준이 섞여 있음). 0.6절이 블록/모듈 결정. 본문 1~12장은 옛 설계라 0.x절과 충돌하면 0.x절이 이김.
 3. **`StructureLayerPlan.md`**: 구조층(방 바깥 설비구역) 계획과 0.1절 결정 기록. 이 구조층 개념은 새 계획의 "설비구역"으로 이어짐(대체).
 4. **`StructureNotes_Ship.md`**: 구조층 1차 구현의 구조 노트(문제, 후보, 선택과 이유, 함정, 노브).
-5. **`StructureNotes_Network.md`**: A0(통로 그물 판만 깔기)의 구조 노트.
+5. **`StructureNotes_Network.md`**: A0(통로 그물 판만 깔기)의 구조 노트와 A1(블록 판)의 구조 노트(A1-1~6절).
 6. 스크린샷 `Blockout/`: `structure_*.png`(구조층 1차), `network_1a_*.png`(A0), `large_*.png`(옛 시안). `proto_*.png`는 우주선 계획이 아니라 프로토타입 세션의 것.
 
 ---
@@ -68,7 +68,7 @@
 |---|---|---|
 | `ShipBlockout_Large` | 옛 시안: 방 10개가 넓은 복도에 빗살로 붙은 호텔 같은 배. 방 사이 벽과 칸막이 배치 도구(B 모드) 있음 | 비교 기준으로 보존. 프로토타입 세션(`Prototype_SeedShip`)이 이것의 복사본 위에서 돎 |
 | `ShipBlockout_Structure` | 구조층 1차 구현(형식 1): 방 바깥(설비구역)을 기계 소품이 채움. 사용자 판정: 느낌은 괜찮은데 방이 사각형이고 방 용도가 안 읽힘 | 새 모델로 **대체될 예정**. 동결 상태로 보존 |
-| `ShipBlockout_Network` | **A0**: 문자 격자 하나를 읽어 회색 판(통로, 방칸, 설비 상자)만 깖. 사용자 판정: 통로 그물 방향이 맞음 | **지금 기준.** A1이 이 위에서 이어짐 |
+| `ShipBlockout_Network` | **A0, A1**: A0는 문자 격자 하나를 회색 판으로 깔았음(판정: 통로 그물 방향이 맞음). A1은 프리셋 하나와 형판 네 장으로 블록 다섯 개를 이어 붙여 색으로 구분하고 접합부와 차단막을 표시함 | **지금 기준.** A2가 이 위에서 이어짐. Play하면 콘솔에 블록, 접합부, 차단막 통계가 찍힘 |
 
 **실행법**: `ShipBlockout_Network`를 열고 Play. WASD 이동, Q/E 화면 90도 회전, Tab 뚜껑 열기/닫기, 휠 줌, 닫힌 동안 우클릭 드래그로 궤도 회전.
 `ShipBlockout_Structure`는 씬에 빈 그룹만 저장돼 있고 **Play를 눌러야** 배치 데이터에서 배가 생성됨.
@@ -77,6 +77,7 @@
 
 - **형식 1 = 구조층 1차 구현(동결)**: `ShipLayout`, `StructureCell`, `ShipStructureProfile`, `ShipStructureFill`, `ShipStructureView`, `ShipGenerator`, `ShipGreeblePool`. 배치 데이터는 `Assets/Prefabs/Ship/Structure/ShipLayout_Large.asset`. 소품(Polyworks 계열) 복사본은 `Assets/Prefabs/Ship/Greeble/Polyworks/`.
 - **A0**: `NetworkGridPreview.cs`가 문자 격자(`Assets/Prefabs/Ship/Network/Ship01_1a.txt`)를 읽고 검사하고 회색 판을 깖. 규칙을 어기는 격자는 **조용히 보정하지 않고 예외로 알림**.
+- **A1**: `ShipNetworkRules.cs`(장면 객체 없는 정적 규칙 클래스: 형판과 프리셋 파서, 검사, 합치기, 접합부와 접합 변 기본값, 통계)와 `NetworkGridPreview.cs`(그 결과를 그리기만 하는 얇은 층). 형판 `Assets/Prefabs/Ship/Network/Blk_*.txt` 4장, 프리셋 `Ship01_A1.txt`, 깨뜨린 확인용 데이터 `Broken/`. 프리셋 줄 키워드는 `block`, `start`. A0 격자(`Ship01_1a.txt`)는 새 파서로 못 열고 비교 기준으로만 남음.
 - **옛 코드(그대로)**: `ShipBlockoutController`(카메라, 뚜껑, 이동, 회전. 구조층 작업에서 ViewYaw와 ViewChanged 알림이 추가됨), `ShipEdgeGrid`(변 상태와 방 계산), `ShipEdgeEditor`(B 모드 칸막이 도구), `ShipHullGenerator`와 `Prefabs/Ship/Hull/` 프리팹 17개(외피 조각).
 
 ### 5.3 사용자가 직접 해 봐야 확인되는 것
@@ -90,14 +91,14 @@
 | 단계 | 내용 | 상태 | 사용자가 판정할 것 |
 |---|---|---|---|
 | A0 | 문자 격자로 판만 깔기(옛 이름 1a) | **완료, 통과** | (끝) |
-| **A1** | 1a 격자를 블록 4~5개로 쪼개고 접합부와 차단막 문 표시. 계산은 장면 객체 없는 정적 규칙 클래스 | **다음. 사용자 승인 받음**(순서: critic → A0 커밋 → SampleScene 정리 커밋 → A1) | "가방 여러 개가 이어 붙은 배로 읽히는가, 접합부 위치가 자연스러운가" |
-| A2 | 모듈 회색 상자(충돌체 켬), 경계를 걸친 모듈 하나, 놓을 수 있는 칸 초록 판, 모듈 종류별 놓을 수 있는 위치 수 | 대기 | "가방과 물건이 따로 읽히는가", 막힌 모양이 걸을 만한가(막는 것 자체는 결정됨) |
+| **A1** | 1a 격자를 블록 4~5개로 쪼개고 접합부와 차단막 문 표시. 계산은 장면 객체 없는 정적 규칙 클래스 | **구현과 독립 리뷰 통과**(Low 9개, 가드 위반 0건), **사용자 화면 판정 대기** | "가방 여러 개가 이어 붙은 배로 읽히는가, 접합부 위치가 자연스러운가" |
+| A2 | 모듈 회색 상자(충돌체 켬), 경계를 걸친 모듈 하나, 놓을 수 있는 칸 초록 판, 모듈 종류별 놓을 수 있는 위치 수 | **다음**(A1 판정 뒤) | "가방과 물건이 따로 읽히는가", 막힌 모양이 걸을 만한가(막는 것 자체는 결정됨) |
 | B1a | 형식 2 데이터, 검사 전체, 테스트, asmdef. 화면은 A2와 같음 | 대기 | 없음(테스트 통과가 판정) |
 | B1b | 형식 2 생성기(벽, 문, 차단막, 띠, 충돌체, 조명) | 대기 | 방, 차단막이 구획으로 읽히는가 |
 | B2, C, D, E, F | 외피 / 내부 뷰 / 붙이기·개조·분리 확인 / 외형 부품과 비용 / 방 용도 표시 | 대기 | 옛 단계와 같음 |
 
-**A1 착수 전 해야 한 일**: A0 결과물 커밋(8절, 2026-11-25 완료). 비교 기준은 "PNG + git 커밋"임.
-**A1 구현 방식**: 이전과 같은 방식으로 `executor`(opus)에게 맡기고, 끝나면 **별도 컨텍스트의 `code-reviewer`** 가 읽기 전용으로 리뷰한 뒤 심각도와 함께 사용자에게 보고함. 작성자가 자기 코드를 승인하지 않음. 1a 격자는 A1에서 재설계(간선에 직접 문을 내는 방 8개를 3개 안팎으로, 방 없이 우주로 가는 긴 지선 둘은 줄이거나 에어락을 달거나 접합부 쪽으로. 계획서 11.2절).
+**A1 진행 기록**: A0 결과물 커밋, 계획서 critic 비평 반영, 구현(executor), 독립 리뷰(code-reviewer), '세그먼트'→'블록' 개명까지 2026-11-25에 끝냄. 커밋: A0 `b591ccc`, SampleScene 정리 `587ab08`, A1 `c484d07`, 개명 `eff5b98`(푸시 안 함).
+**A1 구현 방식(실제)**: executor(opus)가 구현하고 별도 컨텍스트 code-reviewer가 읽기 전용으로 리뷰함(통과). 1a 격자는 블록 다섯 개로 다시 그림(간선 직결 방 3개, 방 없이 우주로 가는 긴 지선 0, 루프가 걸친 접합부 1곳, 방칸끼리 맞닿는 접합부 1곳. 계획서 11.2절).
 
 ---
 
@@ -128,7 +129,7 @@
 
 ## 8. git 상태와 주의
 
-- **이 작업의 결과물(A0까지)은 2026-11-25에 커밋함**: 구조층 스크립트 7개, `NetworkGridPreview.cs`, 새 씬 `ShipBlockout_Structure`/`ShipBlockout_Network`, `Assets/Prefabs/Ship/{Greeble,Structure,Network}/`, 계획서와 구조 노트들, `Blockout/*.png` 중 우주선 쪽 파일(`network_1a_*`, `structure_*`). 푸시는 안 함. 커밋 해시는 `git log`로 확인.
+- **이 작업의 결과물(A1까지)은 2026-11-25에 커밋함**: 구조층 스크립트 7개, `NetworkGridPreview.cs`와 `ShipNetworkRules.cs`, 새 씬 `ShipBlockout_Structure`/`ShipBlockout_Network`, `Assets/Prefabs/Ship/{Greeble,Structure,Network}/`, 계획서와 구조 노트들, `Blockout/*.png` 중 우주선 쪽 파일(`network_1a_*`, `network_A1_*`, `structure_*`). A0 `b591ccc`, SampleScene 정리 `587ab08`, A1 `c484d07`, 개명 `eff5b98`. 푸시는 안 함.
 - **SampleScene 삭제(D)는 사용자가 직접 지움**(휴지통에 2026-11-24 19:26 삭제로 남아 있음, 복구 가능). 삭제를 유지하고 `ProjectSettings/EditorBuildSettings.asset`의 해당 항목 제거와 함께 **별도 커밋**으로 처리함(10절). **그 밖의 출처 모르는 변경(이 작업이 한 게 아니고 이 작업은 안 건드림)**: `Packages/manifest.json`, `Packages/packages-lock.json`, `ProjectSettings/ProjectSettings.asset`, `QualitySettings.asset`, `URPProjectSettings.asset`, `Docs/GameConcept.md` 수정(다른 세션이 계속 고치는 중), `.claude/` untracked. URP 변환이나 다른 세션 작업일 수 있음. 리뷰어는 `com.unity.postprocessing`(PPv2) 패키지가 추가된 것을 보고 Imports 팩에서 딸려 온 것으로 추측함(추측. 다만 `manifest.json` 수정 시각이 Sci-Fi Styled Modular Pack을 가져온 시각과 같아 정황은 있음).
 - **`Assets/Imports/`(약 3.4G, 파일 4만여 개, 100MB 넘는 파일 1개)는 통째로 untracked.** `.gitignore`로 뺄지 Git LFS를 쓸지는 **사용자가 보류함**(2026-11-25). 지금은 둘 다 정하지 않았고 **건드리지도 stage하지도 않음.** `git add .` 금지. 참고: 프로젝트 자산(`Assets` 안 Imports 밖)이 Imports를 참조하는 것은 0개(GUID 전수 검사), 조사 때의 추천은 `.gitignore`였음.
 - 커밋과 푸시: 커밋은 사용자 승인(2026-11-25, 본부 경유) 뒤에 했고, 푸시는 사용자가 말할 때만 함.
@@ -145,7 +146,7 @@
 - 코딩 규약: 새 C# 스크립트는 `Assets/Scripts/ShipBlockout/` 아래 `SpaceOdyssey.Blockout`. 코드 인용과 구체적 수치를 구조 노트에 쓰지 않음(값의 의미를 씀).
 
 ### Unity 에디터를 같이 쓰는 규칙
-- **에디터는 하나이고 여러 세션이 같이 씀.** 씬 열기, Play, 스크립트 수정(재컴파일)은 서로의 Play를 끊을 수 있음. 지금 합의된 순서: 우주선 쪽과 프로토타입 쪽(세션 이름 `본부`)이 **번갈아 쓰고, 쓰기 전에 서로 한 줄로 알림.** 마지막 상태: `ShipBlockout_Network` 열림, Play 꺼짐, 저장 안 한 변경 없음, 에디터는 우주선 쪽이 쓰는 차례.
+- **에디터는 하나(`SO@852e7e0c`)이고 여러 세션이 같이 씀.** 씬 열기, Play, 스크립트 수정(재컴파일), refresh는 서로의 Play를 끊을 수 있어서 **본부 세션이 잠금으로 교통정리함.** 상태는 `python -X utf8 Tools/EditorLock/editorlock.py status`로 읽고(grant, release, queue는 본부만 씀), 잠금이 없는 동안에는 에디터를 쓰지 않음. 끝나면 본부에 "에디터 반납"(Play 아님, 컴파일 에러 없음, 콘솔 에러 없음, 열린 씬 저장 여부)을 보냄. 마지막 상태(2026-11-25): `ShipBlockout_Network` 열림, Play 꺼짐, 저장 안 된 변경 없음, 잠금 반납함.
 - **Unity MCP**(`mcp__UnityMCP__*`): 인스턴스가 둘 붙어 있을 수 있음. 이 프로젝트는 `SO@852e7e0c`. `Dew@e610a44f`는 **다른 프로젝트라 건드리지 마라.** 호출마다 `unity_instance`를 주거나 `set_active_instance`로 고정.
 - `execute_code`에는 `using`을 쓸 수 없음(형식은 전체 경로로). 스크립트를 만지면 `read_console`로 컴파일 에러를 확인하고 도메인 리로드가 끝난 뒤 다음 작업. Unity 6000.6.10f1, URP 17.6, Cinemachine 3, Input System 전용이라 API 이름은 훈련 기억 대신 `unity_reflect`/`unity_docs`로 확인.
 - 이 환경에서는 `Mouse.current`에 큐로 넣은 입력이 실제 마우스 위치에 덮어씌워지고, 에디터가 포커스를 잃으면 Play 프레임이 멈춤. 키보드는 큐로 흉내 낼 수 있음.
@@ -157,4 +158,5 @@
 1. 이 문서와 `ShipLayoutNetworkPlan.md` 0절, 11절, 12절을 읽는다.
 2. (완료 2026-11-25) 사용자에게 **A1 구현 승인**을 받음(순서: critic → 커밋 → A1).
 3. (완료 2026-11-25) A0 결과물 커밋함. `SampleScene` 삭제는 사용자가 직접 지웠고 삭제를 유지해 별도 커밋으로 처리함. `Assets/Imports`는 사용자가 보류함.
-4. 에디터를 쓰기 전에 `본부` 세션에 한 줄로 알린다.
+4. 에디터는 본부의 잠금 안에서만 쓴다(9절). 잠금이 없으면 에디터 없이 되는 일(문서, 읽기 전용 리뷰)만 한다.
+5. 사용자의 **A1 화면 판정**(한 단어)을 받는다. 판정 화면은 `Docs/Blockout/network_A1_*.png`(전체, 차단막 접합부, 루프가 걸친 접합부, 개명 뒤 Play). 판정이 나오면 형판 쪽 노브를 돌린 뒤 A2로 간다.
